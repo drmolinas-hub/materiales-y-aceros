@@ -4,12 +4,12 @@
    Estos datos no son secretos: la protección la dan las reglas de Firestore.
    ====================================================================== */
 export const firebaseConfig = {
-  apiKey: "[PENDIENTE]",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCyQKwABI7kNqlWi-Cgze0D_QWXfXFhS7s",
+  authDomain: "materiales-y-aceros.firebaseapp.com",
+  projectId: "materiales-y-aceros",
+  storageBucket: "materiales-y-aceros.firebasestorage.app",
+  messagingSenderId: "946686605582",
+  appId: "1:946686605582:web:0f8bac0aa0bef4fc327f5f"
 };
 
 /* Enlaces de los Google Forms por defecto. Los creadores pueden cambiarlos
