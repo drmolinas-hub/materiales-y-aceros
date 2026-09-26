@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materiales y Aceros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ BASE ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  --bg:#17191D; --slide:#F6F6F4; --panel:#ECECEA; --ink:#17191D; --muted:#5B5F66;
+  --accent:#B8461A; --line:#D6D6D2; --onbg:#F6F6F4; --onbg-muted:#A7ABB2;
+  background:var(--bg); color:var(--ink);
+  font-family:'Public Sans',system-ui,sans-serif; font-size:17px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+body.theme-game{
+  --bg:#F5F0E6; --slide:#FFFCF5; --panel:#F1E8D6; --ink:#1C1733; --muted:#5D5670;
+  --accent:#C4501B; --line:#E4D9C3; --onbg:#1C1733; --onbg-muted:#6E6680;
+  --gold:#F2B63D; --teal:#6CC3CC; --lila:#7A4290; --naranja:#C4501B; --oscuro:#1C1733;
+  font-family:'Nunito Sans',system-ui,sans-serif;
+}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font:inherit}
+
+/* ============ TOP BAR ============ */
+#topbar{position:fixed;top:0;left:0;right:0;height:52px;z-index:20;display:flex;align-items:center;padding:0 28px;
+  background:var(--bg);border-bottom:1px solid rgba(127,127,127,.18)}
+#progress{position:absolute;top:0;left:0;height:5px;background:var(--accent);transition:width .35s ease}
+#progress-track{position:absolute;top:0;left:0;right:0;height:5px;background:rgba(127,127,127,.2)}
+#steplabel{font-size:13px;font-weight:600;letter-spacing:.08em;color:var(--onbg-muted);text-transform:uppercase}
+#namechip{position:fixed;top:11px;right:24px;z-index:21;display:none;align-items:center;gap:8px;
+  padding:6px 14px 6px 8px;border-radius:999px;background:var(--accent);color:#fff;font-size:14px;font-weight:700}
+#namechip .dot{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:11px}
+
+/* ============ STAGE ============ */
+#stage{position:absolute;top:52px;bottom:72px;left:0;right:0;overflow:auto;padding:22px 28px}
+body.no-nav #stage{bottom:0}
+.slide{max-width:1240px;min-height:100%;margin:0 auto;background:var(--slide);border-radius:16px;padding:40px 52px;
+  position:relative;display:flex;flex-direction:column}
+#nav{position:fixed;left:0;right:0;bottom:0;height:72px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;background:var(--bg);border-top:1px solid rgba(127,127,127,.18)}
+body.no-nav #nav{display:none}
+.btn{padding:12px 24px;border-radius:10px;font-weight:700;font-size:16px;transition:transform .12s,opacity .2s,background .2s}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{color:var(--onbg);border:1.5px solid rgba(127,127,127,.45)}
+.btn-ghost:hover{border-color:var(--onbg)}
+.btn[disabled]{opacity:.3;cursor:default}
+.btn:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ============ TYPO (standard) ============ */
+.kicker{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+h1.title{font-size:44px;line-height:1.08;font-weight:800;letter-spacing:-.01em;margin-bottom:26px}
+.lead{color:var(--muted);font-size:1.05em;margin-bottom:22px;max-width:70ch}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.pagenum{position:absolute;right:28px;bottom:18px;font-size:13px;font-weight:700;color:var(--accent)}
+
+/* ============ MATERIAL BLOCKS (shared by both classes) ============ */
+.mat{font-size:1em}
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:.95em}
+.tbl th{text-align:left;font-size:.78em;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:2px solid var(--accent)}
+.tbl td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{font-weight:700}
+.tbl tr:last-child td{border-bottom:none}
+.strip{margin-top:18px;background:var(--panel);border-radius:12px;padding:14px 18px;font-size:.92em}
+.strip b{color:var(--accent)}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cell{background:var(--panel);border-radius:12px;padding:18px}
+.cell h3{font-size:1.5em;color:var(--accent);margin:6px 0 2px}
+.cell .sub{color:var(--muted);font-size:.88em;margin-bottom:10px}
+.cell ul{list-style:none;font-size:.92em}
+.cell li{padding:4px 0;border-top:1px solid var(--line)}
+.cell svg{display:block;margin:0 auto;height:110px;width:auto}
+.callout{margin-top:16px;display:flex;gap:18px;align-items:center;background:#17191D;color:#F6F6F4;border-radius:12px;padding:14px 20px;font-size:.92em}
+.callout .big{font-size:2em;font-weight:800;color:#E0703F;white-space:nowrap}
+body.theme-game .callout{background:#1C1733}
+body.theme-game .callout .big{color:var(--gold)}
+.curvewrap{display:grid;grid-template-columns:1.35fr 1fr;gap:26px;align-items:center}
+.curvewrap svg{width:100%;height:auto}
+.zones{list-style:none;counter-reset:z}
+.zones li{counter-increment:z;display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.93em}
+.zones li::before{content:counter(z);flex:0 0 26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8em}
+.zones b{display:block}
+.flow{display:flex;align-items:stretch;gap:8px}
+.flow .step{flex:1;background:var(--panel);border-radius:12px;padding:14px;font-size:.88em}
+.flow .step b{display:block;font-size:1.08em;margin-bottom:4px}
+.flow .step.dark{background:#17191D;color:#F6F6F4}
+body.theme-game .flow .step.dark{background:#1C1733}
+.flow .step.dark b{color:#E0703F}
+body.theme-game .flow .step.dark b{color:var(--gold)}
+.flow .arr{align-self:center;color:var(--accent);font-weight:800;font-size:1.2em}
+.cbars{display:flex;gap:8px;margin-top:6px}
+.cbar{border-radius:12px;padding:16px 18px;color:#fff}
+.cbar b{display:block;font-size:1.15em}
+.cbar span{font-size:.9em;opacity:.92}
+.aisi{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px}
+.aisi .cell h4{font-size:1.08em;color:var(--accent);margin-bottom:6px}
+.aisi .code{font-size:2.1em;font-weight:800;letter-spacing:.02em;line-height:1}
+.aisi .code em{font-style:normal;color:var(--accent)}
+.kv{font-size:.9em}
+.kv div{padding:5px 0;border-top:1px solid var(--line)}
+.special{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.special .dark{background:#17191D;color:#F6F6F4;border-radius:12px;padding:20px}
+body.theme-game .special .dark{background:#1C1733}
+.special .dark h3,.special .cell h3{font-size:1.3em;margin-bottom:6px}
+.special .dark h3{color:#E0703F}
+body.theme-game .special .dark h3{color:var(--gold)}
+.special .dark .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.15);font-size:.9em}
+.special .dark .row span{opacity:.75}
+
+/* standard specific */
+.theme-std .slide.cover{background:#1F2227;color:#F6F6F4;justify-content:center;overflow:hidden}
+.cover-grid{display:grid;grid-template-columns:1.3fr 1fr;align-items:center;gap:30px}
+.cover h1{font-size:64px;line-height:1.02;font-weight:800;letter-spacing:-.02em}
+.cover .subt{color:#E0703F;font-size:22px;font-style:italic;margin-top:18px}
+.cover .date{margin-top:36px;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:#A7ABB2}
+.topics{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.topic{background:var(--panel);border-radius:12px;padding:22px;display:flex;gap:14px;align-items:flex-start}
+.topic .n{flex:0 0 40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800}
+.topic b{font-size:1.08em;line-height:1.25;margin-top:8px}
+
+/* ============ FORM SCREENS ============ */
+.formwrap{max-width:980px;margin:0 auto;color:var(--onbg)}
+.formwrap h2{font-size:30px;font-weight:800;margin-bottom:6px}
+.formwrap p{color:var(--onbg-muted);margin-bottom:16px}
+.formwrap iframe{width:100%;height:700px;border:0;border-radius:12px;background:#fff;display:block}
+.formwrap .pending{height:700px;border-radius:12px;border:2px dashed rgba(127,127,127,.5);display:grid;place-items:center;text-align:center;color:var(--onbg-muted);padding:30px}
+.formwrap .after{display:flex;justify-content:flex-end;margin:18px 0 30px}
+body.theme-game .formwrap h2{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em}
+
+/* ============ IDENTIFICATION ============ */
+.idwrap{min-height:100%;display:grid;place-items:center}
+.idcard{width:min(620px,100%);background:#F6F6F4;border-radius:18px;padding:44px}
+.idcard h1{font-size:34px;font-weight:800;margin-bottom:6px}
+.idcard .lead{margin-bottom:24px}
+.idrow{display:flex;gap:10px}
+.idrow input{flex:1;padding:14px 16px;border-radius:10px;border:2px solid var(--line);background:#fff;font-size:18px}
+.idrow input:focus{border-color:var(--accent);outline:none}
+.idmsg{margin-top:16px;color:var(--muted);font-size:15px;min-height:22px}
+.sugg{margin-top:10px;display:grid;gap:8px}
+.sugg button{text-align:left;padding:13px 16px;border-radius:10px;background:#ECECEA;font-weight:600;display:flex;justify-content:space-between}
+.sugg button:hover{background:#E2E2DE}
+.sugg button::after{content:'→';color:var(--accent)}
+.confirm{text-align:center}
+.confirm .who{font-size:30px;font-weight:800;margin:10px 0 26px;line-height:1.2}
+.confirm .actions{display:flex;flex-direction:column;align-items:center;gap:12px}
+.linkbtn{color:var(--muted);text-decoration:underline;font-size:15px}
+
+/* ============ END ============ */
+.endwrap{min-height:100%;display:grid;place-items:center;text-align:center;color:var(--onbg)}
+.endwrap h1{font-size:54px;font-weight:800;margin-bottom:12px}
+.endwrap p{color:var(--onbg-muted);font-size:20px;max-width:560px;margin:0 auto}
+.endwrap .mark{width:84px;height:84px;border-radius:50%;background:var(--accent);display:grid;place-items:center;margin:0 auto 24px;color:#fff;font-size:40px}
+
+/* ============ GAME CLASS ============ */
+.theme-game h1,.theme-game h2,.theme-game h3,.theme-game .g-head{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.01em}
+.theme-game .slide{border:1px solid var(--line);box-shadow:0 2px 0 rgba(28,23,51,.05)}
+.g-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.g-kicker{font-family:'Oswald',sans-serif;font-size:14px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.xpchip{display:inline-flex;align-items:center;gap:8px;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;letter-spacing:.06em;
+  background:#1C1733;color:var(--gold);padding:6px 14px;border-radius:999px}
+.xpbar{width:90px;height:6px;border-radius:3px;background:rgba(242,182,61,.25);overflow:hidden}
+.xpbar i{display:block;height:100%;background:var(--gold)}
+.g-title{font-size:44px;line-height:1.05;margin-bottom:20px}
+.chip{display:inline-block;font-family:'Oswald',sans-serif;font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+  padding:6px 14px;border-radius:999px}
+.slide.g-cover{background:#1C1733;color:#FFFCF5;justify-content:center;overflow:hidden;border:none}
+.g-cover .chips{display:flex;gap:10px;margin-bottom:26px}
+.g-cover h1{font-size:68px;line-height:1.02;max-width:15ch}
+.g-cover h1 span{color:var(--gold)}
+.g-cover .subt{font-size:22px;margin-top:20px;color:#D9D3E8}
+.g-cover .subt b{color:var(--teal)}
+.hex-deco{position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:460px;opacity:.95}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.how .box{border-radius:14px;padding:26px;background:var(--panel)}
+.how .box .ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:24px;margin-bottom:14px;color:#fff}
+.how .box h3{font-size:24px;margin-bottom:6px}
+.legend4{margin-top:22px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.legend4 div{border-radius:12px;padding:14px 16px;border:2px solid;font-size:.92em;background:#fff}
+.legend4 b{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.08em;display:block;font-size:1.05em}
+
+/* map */
+.map{position:relative;flex:1;min-height:380px}
+.map svg.path{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;width:210px;transform:translate(-50%,-50%);text-align:center}
+.node .disc{position:relative;width:92px;height:92px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-family:'Oswald',sans-serif;
+  font-size:38px;font-weight:700;color:#fff;border:5px solid #FFFCF5;box-shadow:0 0 0 3px var(--c)}
+.node b{font-family:'Oswald',sans-serif;font-weight:600;font-size:19px;display:inline-block;line-height:1.15;background:var(--slide);padding:2px 8px;border-radius:6px}
+.node small{color:var(--muted);font-size:13px}
+.node.done .disc::after{content:'✓';position:absolute;top:-6px;right:-6px;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1C1733;font-size:16px;display:grid;place-items:center}
+.bosstag{display:inline-block;margin-top:4px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;background:#C4501B;color:#fff;padding:2px 8px;border-radius:6px}
+
+/* region */
+.region-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;flex:1;align-items:start}
+.region-grid .mat{font-size:14.5px}
+.region-grid .cols3{gap:10px}
+.region-grid .cell{padding:12px}
+.region-grid .cell svg{height:80px}
+.region-grid .aisi{grid-template-columns:1fr 1fr;}
+.region-grid .aisi .cell:first-child{grid-column:1 / -1}
+.region-grid .special{grid-template-columns:1fr}
+.region-grid .curvewrap{grid-template-columns:1fr}
+.region-grid .flow{flex-wrap:wrap}
+.region-grid .flow .step{flex:1 1 30%}
+.region-grid .flow .arr{display:none}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{padding:7px 14px;border-radius:999px;font-weight:700;font-size:14px;background:var(--panel);color:var(--muted)}
+.tabs button.on{background:#1C1733;color:var(--gold)}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{--c:#1C1733;position:relative;background:#fff;border-radius:14px;padding:16px 16px 18px;border:2px solid var(--c);transition:opacity .2s}
+.card .tag{display:inline-flex;align-items:center;gap:6px;background:var(--c);color:#fff;font-family:'Oswald',sans-serif;font-weight:500;
+  letter-spacing:.12em;font-size:13px;padding:3px 10px;border-radius:6px;margin-bottom:10px}
+.card p{font-size:15px;line-height:1.4}
+.card.hl{border-width:5px;padding:13px 13px 15px;box-shadow:0 6px 18px -8px var(--c)}
+.card.dim{opacity:.5;border-width:1px;padding:17px 17px 19px}
+.card.dim:hover{opacity:.85}
+.card .mine{position:absolute;top:-12px;right:10px;background:var(--gold);color:#1C1733;font-family:'Oswald',sans-serif;font-weight:600;
+  font-size:12px;letter-spacing:.1em;padding:3px 10px;border-radius:999px;box-shadow:0 2px 0 rgba(0,0,0,.12)}
+.c-objetivo{--c:#C4501B}.c-secreto{--c:#1E6B73}.c-charla{--c:#7A4290}.c-desafio{--c:#1C1733}
+.reveal{margin-top:10px;font-size:13px;font-weight:800;color:var(--c);text-decoration:underline}
+.answer{display:none;margin-top:8px;font-size:14px;background:var(--panel);border-radius:8px;padding:8px 10px}
+.answer.show{display:block}
+.equip{margin-top:10px;display:grid;gap:6px}
+.equip .it{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;font-size:13.5px}
+.equip button{font-size:12px;font-weight:800;padding:4px 8px;border-radius:6px;background:var(--panel)}
+.equip button.ok{background:#2E7D4F;color:#fff}
+.equip button.no{background:#B23A3A;color:#fff}
+
+/* boss + duel (orange slides) */
+.slide.fire{background:#C4501B;color:#fff;border:none}
+.slide.fire .g-kicker{color:#FFE2B8}
+.slide.fire .mat{color:#1C1733}
+.slide.fire .matbox{background:#FFFCF5;border-radius:14px;padding:18px}
+.slide.fire .tabs button{background:rgba(255,255,255,.2);color:#fff}
+.slide.fire .tabs button.on{background:#1C1733;color:var(--gold)}
+.slide.fire .card{color:#1C1733}
+
+.slide.fire .card.hl{box-shadow:0 0 0 3px #FFFCF5,0 8px 20px -8px rgba(0,0,0,.4)}
+.slide.fire .card.dim{opacity:.72}
+.region-grid .curvewrap svg{max-height:250px}
+.region-grid .zones{display:grid;grid-template-columns:1fr 1fr;column-gap:16px}
+/* camp + chest */
+.badges{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:10px}
+.badge{text-align:center;padding:20px 12px;border-radius:14px;background:var(--panel)}
+.badge .medal{width:78px;height:78px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;font-family:'Oswald',sans-serif;font-size:30px;color:#fff;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.18)}
+.badge b{font-family:'Oswald',sans-serif;font-weight:600;font-size:17px;display:block;line-height:1.15}
+.badge small{color:var(--muted);font-size:13px}
+.badge.off{opacity:.4;filter:grayscale(1)}
+.bigxp{margin-top:26px;display:flex;align-items:center;gap:20px;background:#1C1733;color:#fff;border-radius:14px;padding:20px 26px}
+.bigxp .v{font-family:'Oswald',sans-serif;font-size:44px;color:var(--gold);font-weight:700;line-height:1}
+.bigxp .bar{flex:1;height:14px;border-radius:7px;background:rgba(242,182,61,.2);overflow:hidden}
+.bigxp .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#6CC3CC)}
+.chest{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.flip{height:150px;perspective:900px}
+.flip button{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .45s}
+.flip.on button{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;display:grid;place-items:center;padding:14px;text-align:center}
+.flip .f{background:#1C1733;color:var(--gold);font-family:'Oswald',sans-serif;font-size:34px;font-weight:700}
+.flip .f small{display:block;font-family:'Nunito Sans',sans-serif;font-size:12px;letter-spacing:.12em;color:#9E97B5;font-weight:700;text-transform:uppercase;margin-top:6px}
+.flip .b{background:#fff;border:2px solid var(--gold);transform:rotateY(180deg);font-size:15px;line-height:1.35}
+
+/* duel */
+.duel{background:#FFFCF5;color:#1C1733;border-radius:14px;padding:6px 18px}
+.duel .tbl td{vertical-align:middle}
+.duel .hide{background:#1C1733;color:var(--gold);border-radius:8px;padding:6px 12px;font-weight:800;font-size:13px}
+.duel .marks{display:flex;gap:6px;justify-content:flex-end}
+.duel .marks button{width:34px;height:34px;border-radius:8px;background:var(--panel);font-weight:800}
+.duel .marks button.ok.on{background:#2E7D4F;color:#fff}
+.duel .marks button.no.on{background:#B23A3A;color:#fff}
+.duel-bar{display:flex;justify-content:space-between;align-items:center;margin:4px 0 16px;gap:16px}
+.duel-bar p{font-size:18px;font-weight:700}
+.btn-light{background:#FFFCF5;color:#C4501B;padding:10px 18px;border-radius:10px;font-weight:800}
+
+/* score */
+.ranks{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.rank{border-radius:14px;padding:22px;background:var(--panel);border:3px solid transparent}
+.rank .r{font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:.14em;color:var(--muted)}
+.rank h3{font-size:28px;margin:4px 0 6px}
+.rank.on{border-color:var(--gold);background:#fff;box-shadow:0 8px 24px -12px rgba(28,23,51,.4)}
+.stars{display:flex;gap:10px;margin:8px 0 4px}
+.stars span{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:var(--panel);color:#B9B0A0}
+.stars span.on{background:var(--gold);color:#1C1733}
+.calm{margin-top:24px;padding:18px 22px;border-left:6px solid var(--teal);background:#fff;border-radius:10px;font-size:20px;font-weight:700}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:92px;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:30;
+  background:#1C1733;color:var(--gold,#F2B63D);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.06em;font-size:18px;
+  padding:12px 22px;border-radius:999px;transition:all .35s}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body class="theme-std no-nav">
+
+<div id="topbar"><div id="progress-track"></div><div id="progress"></div><div id="steplabel"></div></div>
+<div id="namechip"><span class="dot">●</span><span id="namechip-text"></span></div>
+<main id="stage" aria-live="polite"></main>
+<nav id="nav">
+  <button class="btn btn-ghost" id="prev" data-action="prev">← Anterior</button>
+  <button class="btn btn-primary" id="next" data-action="next">Siguiente →</button>
+</nav>
+<div id="toast"></div>
+
+<script>
+/* ======================================================================
+   CONFIGURACIÓN — sustituye los IDs reales de los Google Forms
+   ====================================================================== */
+const FORMS = {
+  f1: 'https://docs.google.com/forms/d/e/[ID_FORM_1]/viewform?embedded=true', // diagnóstico
+  f2: 'https://docs.google.com/forms/d/e/[ID_FORM_2]/viewform?embedded=true', // examen
+  f3: 'https://docs.google.com/forms/d/e/[ID_FORM_3]/viewform?embedded=true'  // percepción
+};
+
+/* Roster (el campo "perfil" decide qué tarjeta se resalta en la clase 2) */
+const ROSTER = [
+  {"id": 1, "nombre": "Nadiesda Yailin Fuentes Hernandez", "perfil": ""},
+  {"id": 2, "nombre": "Dayana Michell Amaya Lopez", "perfil": ""},
+  {"id": 3, "nombre": "Angie Michelle Altamirano Aguilar", "perfil": ""},
+  {"id": 4, "nombre": "Juan Sebastián Meléndez Cruz", "perfil": ""},
+  {"id": 5, "nombre": "Carlos Miguel Cantillano Zelaya", "perfil": "Mixto: OBJETIVO + CHARLA"},
+  {"id": 6, "nombre": "Marcelo Andre Sabillon Muñoz", "perfil": "CHARLA"},
+  {"id": 7, "nombre": "Luis Eduardo Sosa Tello", "perfil": "OBJETIVO"},
+  {"id": 8, "nombre": "André Yan Po Delcid Sú", "perfil": "CHARLA"},
+  {"id": 9, "nombre": "Josue Yassir Bautista Antunez", "perfil": "OBJETIVO"},
+  {"id": 10, "nombre": "Kaylee Fu", "perfil": "Mixto: OBJETIVO + SECRETO + CHARLA"},
+  {"id": 11, "nombre": "Jose Andres Ortiz Rodriguez", "perfil": "CHARLA"},
+  {"id": 12, "nombre": "Yiny Ramón Orellana Santos", "perfil": ""},
+  {"id": 13, "nombre": "Jean Carlos Fernandez Fernandez", "perfil": "SECRETO"},
+  {"id": 14, "nombre": "Kelvin Jafeth Melgar Quiroz", "perfil": "CHARLA"},
+  {"id": 15, "nombre": "José Fernando Hernández Sánchez", "perfil": ""},
+  {"id": 16, "nombre": "José David Velásquez Gonzales", "perfil": ""},
+  {"id": 17, "nombre": "Ada Marina Ruiz Rivera", "perfil": ""},
+  {"id": 18, "nombre": "Angie Cecilia Díaz Betancourth", "perfil": ""}
+];
+
+/* ======================================================================
+   ESTADO
+   ====================================================================== */
+const S = { i:0, person:null, cards:[], xp:0, visited:{}, tab:{}, answers:{}, equip:{}, duel:{}, duelCover:true, duelShown:{}, flips:{} };
+const TOTAL = 29;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+const firstName = () => S.person ? S.person.nombre.split(' ')[0] : '';
+
+/* Tarjetas a resaltar según el campo perfil */
+function cardsFor(p){
+  const t = norm(p.perfil).toUpperCase();
+  return ['OBJETIVO','SECRETO','CHARLA','DESAFIO'].filter(k => t.includes(k)).map(k => k.toLowerCase());
+}
+
+/* ======================================================================
+   FUZZY MATCH (subcadenas, sin librerías)
+   ====================================================================== */
+function search(q){
+  const qt = norm(q).split(' ').filter(t => t.length >= 2);
+  if (!qt.length) return {full:[], partial:[]};
+  const scored = ROSTER.map(p => {
+    const nt = norm(p.nombre).split(' ');
+    const whole = nt.join(' ');
+    let score = 0, hits = 0;
+    qt.forEach(t => {
+      if (nt.includes(t)) { score += 3; hits++; }
+      else if (nt.some(w => w.startsWith(t))) { score += 2; hits++; }
+      else if (whole.includes(t)) { score += 1; hits++; }
+    });
+    if (whole.startsWith(qt.join(' '))) score += 2;
+    return {p, score, full: hits === qt.length};
+  }).filter(r => r.score > 0).sort((a,b) => b.score - a.score);
+  return { full: scored.filter(r => r.full).map(r => r.p), partial: scored.map(r => r.p) };
+}
+
+/* ======================================================================
+   SVG
+   ====================================================================== */
+const ACC = 'var(--accent)';
+function cube(type){
+  const F=[[20,40],[90,40],[90,110],[20,110]], B=[[50,15],[120,15],[120,85],[50,85]];
+  const L=(a,b)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`;
+  let s='<g stroke="#5B6470" stroke-width="2" fill="none">';
+  for(let k=0;k<4;k++){ s+=L(F[k],F[(k+1)%4])+L(B[k],B[(k+1)%4])+L(F[k],B[k]); }
+  s+='</g><g fill="'+ACC+'">';
+  [...F,...B].forEach(p=> s+=`<circle cx="${p[0]}" cy="${p[1]}" r="5"/>`);
+  if(type==='bcc') s+='<circle cx="70" cy="62.5" r="9"/>';
+  if(type==='fcc') [[55,75],[85,50],[35,62.5],[105,62.5],[70,27.5],[70,97.5]].forEach(p=> s+=`<circle cx="${p[0]}" cy="${p[1]}" r="6.5"/>`);
+  return `<svg viewBox="0 0 140 125" aria-hidden="true">${s}</g></svg>`;
+}
+function hcp(){
+  const hex = cy => [[110,cy],[90,cy+10],[50,cy+10],[30,cy],[50,cy-10],[90,cy-10]];
+  const T=hex(22), Bo=hex(98);
+  let s='<g stroke="#5B6470" stroke-width="2" fill="none">';
+  s+=`<polygon points="${T.map(p=>p.join(',')).join(' ')}"/><polygon points="${Bo.map(p=>p.join(',')).join(' ')}"/>`;
+  T.forEach((p,k)=> s+=`<line x1="${p[0]}" y1="${p[1]}" x2="${Bo[k][0]}" y2="${Bo[k][1]}"/>`);
+  s+='</g><g fill="'+ACC+'">';
+  [...T,...Bo].forEach(p=> s+=`<circle cx="${p[0]}" cy="${p[1]}" r="5"/>`);
+  s+='<circle cx="70" cy="22" r="6.5"/><circle cx="70" cy="98" r="6.5"/><circle cx="55" cy="56" r="7.5"/><circle cx="87" cy="58" r="7.5"/><circle cx="68" cy="68" r="7.5"/>';
+  return `<svg viewBox="0 0 140 125" aria-hidden="true">${s}</g></svg>`;
+}
+function curveSVG(){
+  return `<svg viewBox="0 0 560 320" role="img" aria-label="Curva esfuerzo-deformación">
+  <rect x="52" y="30" width="40" height="232" fill="var(--accent)" opacity=".10"/>
+  <rect x="92" y="30" width="410" height="232" fill="var(--accent)" opacity=".04"/>
+  <g stroke="var(--line)" stroke-width="1">${[80,130,180,230].map(y=>`<line x1="52" y1="${y}" x2="530" y2="${y}"/>`).join('')}</g>
+  <line x1="52" y1="262" x2="535" y2="262" stroke="var(--muted)" stroke-width="2"/>
+  <line x1="52" y1="262" x2="52" y2="22" stroke="var(--muted)" stroke-width="2"/>
+  <path d="M52 262 L92 128 C140 100, 230 70, 330 66 C400 64, 462 80, 502 108" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="92" cy="128" r="7" fill="var(--ink)"/>
+  <circle cx="330" cy="66" r="7" fill="var(--ink)"/>
+  <g stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"><line x1="494" y1="100" x2="510" y2="116"/><line x1="510" y1="100" x2="494" y2="116"/></g>
+  <g font-family="inherit" font-size="14" font-weight="700" fill="var(--ink)">
+    <text x="104" y="140">Límite elástico</text>
+    <text x="330" y="48" text-anchor="middle">UTS · resistencia última</text>
+    <text x="512" y="138" text-anchor="end">Fractura</text>
+  </g>
+  <g font-family="inherit" font-size="13" font-weight="600" fill="var(--accent)">
+    <text x="72" y="46" text-anchor="middle">Elástica</text>
+    <text x="300" y="220" text-anchor="middle">Zona plástica</text>
+  </g>
+  <g font-family="inherit" font-size="13" fill="var(--muted)">
+    <text x="530" y="286" text-anchor="end">Deformación ε →</text>
+    <text x="20" y="150" transform="rotate(-90 20 150)" text-anchor="middle">Esfuerzo σ →</text>
+  </g></svg>`;
+}
+
+/* ======================================================================
+   MATERIAL COMPARTIDO (mismo contenido en ambas clases)
+   ====================================================================== */
+const M = {
+  props: () => `<div class="mat">
+    <table class="tbl"><thead><tr><th>Propiedad</th><th>Qué significa</th><th>Dato clave</th></tr></thead><tbody>
+      <tr><td>Elasticidad</td><td>Recupera su forma al retirar la fuerza</td><td class="muted">Hasta el límite elástico</td></tr>
+      <tr><td>Maleabilidad</td><td>Se deja reducir a láminas sin fracturarse</td><td class="muted">Oro, plata, cobre</td></tr>
+      <tr><td>Ductilidad</td><td>Se deja estirar en hilos o alambre</td><td class="muted">Platino, oro, cobre</td></tr>
+      <tr><td>Dureza</td><td>Resistencia a ser penetrado</td><td class="muted">Se mide con durómetro</td></tr>
+      <tr><td>Fragilidad</td><td>Se fractura sin deformación previa</td><td class="muted">Lo opuesto a la tenacidad</td></tr>
+    </tbody></table>
+    <div class="strip">Todo empieza en el <b>enlace atómico</b>: iónico (un átomo entrega electrones), covalente (los comparten) y metálico (una nube común de electrones: de ahí la conductividad y la ductilidad de los metales).</div>
+  </div>`,
+
+  crystal: () => `<div class="mat"><div class="cols3">
+      <div class="cell">${cube('bcc')}<h3>BCC</h3><div class="sub">Cúbica centrada en el cuerpo</div>
+        <ul><li><b>2</b> átomos por celda</li><li>Hierro α (&lt; 912 °C)</li><li>Fuerte, menos dúctil</li></ul></div>
+      <div class="cell">${cube('fcc')}<h3>FCC</h3><div class="sub">Cúbica centrada en las caras</div>
+        <ul><li><b>4</b> átomos por celda</li><li>Hierro γ (912–1 394 °C)</li><li>Más compacta, la más dúctil</li></ul></div>
+      <div class="cell">${hcp()}<h3>HCP</h3><div class="sub">Hexagonal compacta</div>
+        <ul><li>Magnesio, titanio, zinc</li><li>Poca ductilidad</li></ul></div>
+    </div>
+    <div class="callout"><span class="big">912 °C</span><span>A esta temperatura el hierro pasa de BCC a FCC. Un material que cambia de estructura con la temperatura se llama <b>alotrópico</b>.</span></div>
+  </div>`,
+
+  curve: () => `<div class="mat curvewrap"><div>${curveSVG()}</div>
+    <ol class="zones">
+      <li><span><b>Zona elástica</b>Ley de Hooke: sin deformación permanente.</span></li>
+      <li><span><b>Límite elástico</b>Yield point: desde aquí la deformación ya no se recupera.</span></li>
+      <li><span><b>Zona plástica</b>Endurecimiento por deformación.</span></li>
+      <li><span><b>UTS</b>Resistencia última: el esfuerzo máximo.</span></li>
+      <li><span><b>Fractura</b>El material se rompe.</span></li>
+    </ol></div>`,
+
+  furnace: () => `<div class="mat">
+    <div class="flow">
+      <div class="step"><b>Materia prima</b>Mineral de hierro + coque + caliza</div><span class="arr">▶</span>
+      <div class="step"><b>Alto horno</b>A 1 800 °C</div><span class="arr">▶</span>
+      <div class="step"><b>Arrabio</b>Hierro de primera fusión, ~4 % C</div><span class="arr">▶</span>
+      <div class="step"><b>Convertidor</b>Elimina impurezas y controla el carbono</div><span class="arr">▶</span>
+      <div class="step dark"><b>Acero</b>Menos de 2.1 % C</div>
+    </div>
+    <div class="callout"><span class="big">1 538 °C</span><span>Punto de fusión del hierro puro.</span></div>
+  </div>`,
+
+  carbon: () => `<div class="mat">
+    <div class="cbars">
+      <div class="cbar" style="flex:1;background:#8E979F"><b>Hierro puro</b><span>&lt; 0.02 % C</span></div>
+      <div class="cbar" style="flex:2.4;background:var(--accent)"><b>Acero</b><span>0.02 – 2.1 % C</span></div>
+      <div class="cbar" style="flex:1.8;background:#46505B"><b>Hierro colado / fundición</b><span>2.1 – 6 % C · frágil, se obtiene por vaciado</span></div>
+    </div>
+    <p class="muted" style="margin-top:12px;font-size:.9em">Cuanto más carbono, más duro… y más frágil.</p>
+  </div>`,
+
+  aisi: () => `<div class="mat aisi">
+    <div class="cell"><h4>Al carbono · serie 10XX</h4>
+      <div class="code">10<em>XX</em></div>
+      <p style="font-size:.9em;margin:8px 0">Los últimos 2 dígitos = % C × 100. Ej.: <b>1020 = 0.20 % C</b></p>
+      <div class="kv"><div><b>Bajo</b> (&lt; 0.30 %): láminas y estructuras</div><div><b>Medio</b> (0.30–0.60 %): cigüeñales</div><div><b>Alto</b> (&gt; 0.60 %): resortes y herramientas</div></div></div>
+    <div class="cell"><h4>Hierros colados</h4>
+      <div class="kv"><div>2.1–4 % C y 1–3 % Si</div><div>Se fabrican por molde (vaciado)</div><div>Bloques de motor, bases de máquina</div></div></div>
+    <div class="cell"><h4>Baja aleación (&lt; 5 % aleantes)</h4>
+      <div class="kv"><div><b>Cr</b> → dureza</div><div><b>Mn</b> → resistencia</div><div><b>Mo</b> → tenacidad</div><div><b>Ni</b> → anticorrosión</div></div></div>
+  </div>`,
+
+  special: () => `<div class="mat special">
+    <div class="dark"><h3>Acero inoxidable</h3><p style="font-size:.9em;opacity:.85;margin-bottom:6px">Contiene cromo (y níquel) → resiste la corrosión.</p>
+      <div class="row"><b>Austeníticos</b><span>18 % Cr, 8 % Ni · 304, 316L</span></div>
+      <div class="row"><b>Ferríticos</b><span>15–20 % Cr · 430</span></div>
+      <div class="row"><b>Martensíticos</b><span>hasta 18 % Cr · 410, 440C</span></div></div>
+    <div class="cell"><h3 style="color:var(--accent)">Aceros HSS</h3><p style="font-size:.9em;margin-bottom:8px">Alta dureza y resistencia al desgaste; trabajan a altas velocidades y temperaturas.</p>
+      <div class="kv"><div><b>Tipo M</b>: hasta 10 % Mo</div><div><b>Tipo T</b>: 12–18 % W</div></div></div>
+  </div>`,
+
+  summaryRows: [
+    ['Cable eléctrico','Conductividad eléctrica','Cobre'],
+    ['Pieza que recupera su forma','Elasticidad','Acero de alto carbono'],
+    ['Láminas delgadas','Maleabilidad','Acero de bajo carbono'],
+    ['Ambiente húmedo','Resistencia a la corrosión','Acero inoxidable'],
+    ['Corte a alta velocidad y temperatura','Dureza y resistencia al desgaste','Acero HSS']
+  ]
+};
+
+/* ======================================================================
+   CLASE ESTÁNDAR — 10 slides
+   ====================================================================== */
+const stdHead = (k,t) => `<div class="kicker">${k}</div><h1 class="title">${t}</h1>`;
+const STD = [
+  () => `<div class="slide cover"><div class="cover-grid"><div>
+      <h1>Materiales<br>y Aceros</h1>
+      <div class="subt">Clase estándar · Unidad 1</div>
+      <div class="date">${new Date().toLocaleDateString('es-HN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+    </div><div style="text-align:center">${cube('bcc').replace('viewBox','style="width:320px;height:auto" viewBox')}</div></div></div>`,
+  () => `<div class="slide">${stdHead('Unidad 1','Temas de hoy')}
+    <div class="topics">${['Enlace atómico y propiedades','Estructuras cristalinas','Curva esfuerzo-deformación','Proceso siderúrgico','Nomenclatura AISI-SAE','Aceros especiales']
+      .map((t,k)=>`<div class="topic"><span class="n">0${k+1}</span><b>${t}</b></div>`).join('')}</div></div>`,
+  () => `<div class="slide">${stdHead('Tema 01 · Propiedades','Propiedades mecánicas')}${M.props()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 02 · Naturaleza de los materiales','Estructuras cristalinas')}${M.crystal()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 03 · Ensayo de tensión','Curva esfuerzo-deformación')}${M.curve()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 04 · Siderurgia','El alto horno')}<p class="lead">La siderurgia abarca desde la extracción del mineral hasta la obtención de los aceros industriales.</p>${M.furnace()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 04 · Siderurgia','Clasificación por carbono')}<p class="lead">Los productos siderúrgicos se clasifican según su contenido de carbono.</p>${M.carbon()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 05 · Clasificación','Nomenclatura AISI-SAE')}${M.aisi()}</div>`,
+  () => `<div class="slide">${stdHead('Tema 06 · Aceros especiales','Inoxidables y HSS')}${M.special()}</div>`,
+  () => `<div class="slide">${stdHead('Cierre','Resumen')}
+    <table class="tbl"><thead><tr><th>Aplicación</th><th>Propiedad clave</th><th>Material</th></tr></thead><tbody>
+    ${M.summaryRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td style="color:var(--accent);font-weight:700">${r[2]}</td></tr>`).join('')}
+    </tbody></table></div>`
+].map((html,k) => ({ kind:'std', html: () => html().replace(/<\/div>$/, k ? `<span class="pagenum">${String(k+1).padStart(2,'0')}</span></div>` : '</div>') }));
+
+/* ======================================================================
+   CLASE PERSONALIZADA — 12 slides
+   ====================================================================== */
+const CARD_META = {
+  objetivo:{label:'OBJETIVO', ic:'◎'}, secreto:{label:'SECRETO', ic:'✦'},
+  charla:{label:'CHARLA', ic:'❝'},    desafio:{label:'DESAFÍO', ic:'⚑'}
+};
+const REGIONS = [
+  { name:'El Laboratorio de Propiedades', short:'Laboratorio', color:'#1E6B73', mat:[['Propiedades',M.props]],
+    cards:{ objetivo:{t:'Identifica cada propiedad en un objeto cotidiano.'},
+            secreto:{t:'El módulo de Young mide la rigidez del enlace atómico.'},
+            charla:{t:'¿Cuál propiedad es más importante para un puente? ¿Por qué?'},
+            desafio:{t:'¿Puede un material ser a la vez dúctil y frágil?'} } },
+  { name:'Las Torres de Cristal', short:'Torres', color:'#7A4290', mat:[['Estructuras',M.crystal]],
+    cards:{ objetivo:{t:'Dibuja una celda BCC y cuenta sus átomos.'},
+            secreto:{t:'FCC tiene el mayor factor de empaquetamiento: 0.74.'},
+            charla:{t:'¿Por qué el titanio HCP se usa en implantes médicos?'},
+            desafio:{t:'¿Cómo cambiaría el acero si pasara de BCC a FCC?'} } },
+  { name:'La Gran Forja', short:'Forja', color:'#C4501B', boss:true, mat:[['Curva',M.curve]],
+    cards:{ objetivo:{t:'Señala el límite elástico en la curva esfuerzo-deformación.'},
+            secreto:{t:'El endurecimiento por deformación aumenta las dislocaciones.'},
+            charla:{t:'¿Por qué el acero de un riel de tren debe ser dúctil?'},
+            desafio:{t:'¿Qué pasa si diseñas una pieza para trabajar en zona plástica?'} } },
+  { name:'La Ciudad del Carbono', short:'Ciudad', color:'#46505B', mat:[['Alto horno',M.furnace],['Carbono',M.carbon],['Código AISI-SAE',M.aisi]],
+    cards:{ objetivo:{t:'Descifra el código 1045.', a:'0.45 % de carbono: acero de medio carbono.'},
+            secreto:{t:'Cementita: el constituyente más duro. Ferrita: el más blando.'},
+            charla:{t:'¿Por qué un bloque de motor se hace en molde?'},
+            desafio:{t:'¿Qué aleante le darías para más tenacidad?', a:'Molibdeno (Mo).'} } },
+  { name:'La Armería', short:'Armería', color:'#1C1733', mat:[['Aceros especiales',M.special]],
+    cards:{ objetivo:{t:'Equipa cada pieza con su acero: ¿inoxidable o HSS?', equip:[['Bisturí de hospital','INOX'],['Broca para metal','HSS'],['Fregadero de cocina','INOX'],['Fresa de corte rápido','HSS']]},
+            secreto:{t:'Series de herramientas: T y M (alta velocidad), H (caliente), D (frío), W (golpe), S (choque).'},
+            charla:{t:'El inoxidable mantiene limpio el instrumental de un hospital. ¿Dónde más ayuda?'},
+            desafio:{t:'Una broca industrial: ¿inoxidable o HSS?', a:'HSS: soporta altas velocidades y temperaturas.'} } }
+];
+
+const xpChip = (xp = S.xp) => `<span class="xpchip">XP: ${xp} / 500 <span class="xpbar"><i style="width:${xp/5}%"></i></span></span>`;
+const gTop = k => `<div class="g-top"><span class="g-kicker">${k}</span>${xpChip()}</div>`;
+
+function cardHTML(ri, key){
+  const c = REGIONS[ri].cards[key], meta = CARD_META[key];
+  const sel = S.cards, mine = sel.includes(key);
+  const cls = sel.length === 0 ? '' : (mine ? 'hl' : 'dim');
+  let extra = '';
+  if (c.a) {
+    const id = ri+'-'+key, open = S.answers[id];
+    extra = `<button class="reveal" data-action="reveal" data-id="${id}">${open?'Ocultar respuesta':'Ver respuesta'}</button><div class="answer ${open?'show':''}">${c.a}</div>`;
+  }
+  if (c.equip) {
+    extra = `<div class="equip">${c.equip.map(([item,ok],k)=>{
+      const pick = S.equip[k];
+      const b = v => `<button data-action="equip" data-k="${k}" data-v="${v}" class="${pick===v?(v===ok?'ok':'no'):''}">${v==='INOX'?'Inox':'HSS'}</button>`;
+      return `<div class="it"><span>${item}</span>${b('INOX')}${b('HSS')}</div>`;}).join('')}</div>`;
+  }
+  return `<div class="card c-${key} ${cls}">${mine?'<span class="mine">← TU ESTILO</span>':''}
+    <span class="tag">${meta.ic} ${meta.label}</span><p>${c.t}</p>${extra}</div>`;
+}
+
+function regionSlide(ri){
+  const R = REGIONS[ri], t = S.tab[ri] || 0;
+  const tabs = R.mat.length > 1 ? `<div class="tabs">${R.mat.map((m,k)=>`<button class="${k===t?'on':''}" data-action="tab" data-r="${ri}" data-k="${k}">${m[0]}</button>`).join('')}</div>` : '';
+  return `<div class="slide ${R.boss?'fire':''}">
+    ${gTop(`Región ${ri+1} de 5${R.boss?' · Jefe de región':''}`)}
+    <h1 class="g-title">${R.name}</h1>
+    <div class="region-grid">
+      <div class="matbox">${tabs}${R.mat[t][1]()}</div>
+      <div class="cards">${['objetivo','secreto','charla','desafio'].map(k=>cardHTML(ri,k)).join('')}</div>
+    </div></div>`;
+}
+
+const MAP_POS = [[10,70],[30,28],[50,68],[70,28],[90,68]];
+function mapHTML(){
+  const pts = MAP_POS.map(([x,y]) => `${x*10},${y*4}`).join(' ');
+  return `<div class="map">
+    <svg class="path" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="${pts}" fill="none" stroke="#1C1733" stroke-width="4" stroke-dasharray="4 14" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+    </svg>
+    ${REGIONS.map((R,k)=>`<div class="node ${S.visited[k]?'done':''}" style="left:${MAP_POS[k][0]}%;top:${MAP_POS[k][1]}%;--c:${R.color}">
+      <div class="disc" style="background:${R.color};position:relative">${k+1}</div>
+      <b>${R.name}</b>${R.boss?'<span class="bosstag">JEFE</span>':''}</div>`).join('')}
+  </div>`;
+}
+
+const CHEST = [
+  ['912 °C','A esta temperatura el hierro pasa de BCC a FCC.'],
+  ['0.74','Factor de empaquetamiento de FCC: el más alto.'],
+  ['1 538 °C','Punto de fusión del hierro puro.'],
+  ['2.1 % C','Frontera entre el acero y el hierro colado.'],
+  ['1045','Acero al carbono con 0.45 % C: medio carbono.'],
+  ['18 / 8','% de cromo y níquel de un inoxidable austenítico (304).'],
+  ['< 5 %','Aleantes en un acero de baja aleación.'],
+  ['UTS','Resistencia última: el punto más alto de la curva.']
+];
+
+function duelScore(){ return Object.values(S.duel).filter(v => v==='ok').length; }
+
+const GAME = [
+  // 1 · Cover
+  () => `<div class="slide g-cover">
+    <svg class="hex-deco" viewBox="0 0 400 400" aria-hidden="true">
+      <g fill="none" stroke-width="3"><polygon points="200,40 338,120 338,280 200,360 62,280 62,120" stroke="#F2B63D"/>
+      <polygon points="200,90 295,145 295,255 200,310 105,255 105,145" stroke="#6CC3CC" opacity=".8"/></g>
+      <g fill="#C4501B"><circle cx="200" cy="40" r="10"/><circle cx="338" cy="120" r="10"/><circle cx="338" cy="280" r="10"/><circle cx="200" cy="360" r="10"/><circle cx="62" cy="280" r="10"/><circle cx="62" cy="120" r="10"/></g>
+      <circle cx="200" cy="200" r="26" fill="#F2B63D"/></svg>
+    <div class="chips"><span class="chip" style="background:#F2B63D;color:#1C1733">EXPEDICIÓN PERSONALIZADA</span><span class="chip" style="border:2px solid #6CC3CC;color:#6CC3CC">XP: 0 / 500</span></div>
+    <h1>Materiales y Aceros: <span>La Expedición</span></h1>
+    <p class="subt">Una ruta preparada para <b>${esc(S.person ? S.person.nombre : '')}</b></p>
+  </div>`,
+  // 2 · Cómo funciona
+  () => `<div class="slide">${gTop('Antes de salir')}<h1 class="g-title">Cómo funciona</h1>
+    <div class="how">
+      <div class="box"><div class="ic" style="background:#1E6B73">➜</div><h3>Avanza región a región</h3><p>Cinco regiones, cada una con un tema de la clase. Recorre el mapa en orden.</p></div>
+      <div class="box"><div class="ic" style="background:#F2B63D;color:#1C1733">★</div><h3>Gana XP e insignias</h3><p>Cada región completada suma 100 XP y una insignia. La meta: 500 XP.</p></div>
+      <div class="box"><div class="ic" style="background:#C4501B">⚔</div><h3>Defiende lo aprendido</h3><p>Al final te espera un duelo de cinco retos.</p></div>
+    </div>
+    <p style="margin-top:24px;font-weight:700">En cada región hay cuatro tipos de tarjeta. Empieza por la que más te llame… o hazlas todas.</p>
+    <div class="legend4">
+      <div style="border-color:#C4501B"><b style="color:#C4501B">◎ OBJETIVO</b>Una misión concreta.</div>
+      <div style="border-color:#1E6B73"><b style="color:#1E6B73">✦ SECRETO</b>Un dato escondido.</div>
+      <div style="border-color:#7A4290"><b style="color:#7A4290">❝ CHARLA</b>Una pregunta para comentar.</div>
+      <div style="border-color:#1C1733"><b style="color:#1C1733">⚑ DESAFÍO</b>Un reto para ir más allá.</div>
+    </div></div>`,
+  // 3 · Mapa
+  () => `<div class="slide">${gTop('La ruta')}<h1 class="g-title">El mapa de la expedición</h1>${mapHTML()}</div>`,
+  // 4–8 · Regiones
+  () => regionSlide(0), () => regionSlide(1), () => regionSlide(2), () => regionSlide(3), () => regionSlide(4),
+  // 9 · Campamento
+  () => `<div class="slide">${gTop('Campamento')}<h1 class="g-title">¡Recorriste las cinco regiones!</h1>
+    <div class="badges">${REGIONS.map((R,k)=>`<div class="badge ${S.visited[k]?'':'off'}"><div class="medal" style="background:${R.color}">${k+1}</div><b>${R.name}</b><small>${S.visited[k]?'+100 XP':'Pendiente'}</small></div>`).join('')}</div>
+    <div class="bigxp"><span class="v">${S.xp}</span><div class="bar"><i style="width:${S.xp/5}%"></i></div><span style="font-family:Oswald;font-size:20px">/ 500 XP</span></div></div>`,
+  // 10 · Cofre
+  () => `<div class="slide">${gTop('Antes del duelo')}<h1 class="g-title">El cofre de datos</h1>
+    <p class="lead">Ocho datos que vas a necesitar. Toca cada uno para abrirlo.</p>
+    <div class="chest">${CHEST.map(([f,b],k)=>`<div class="flip ${S.flips[k]?'on':''}"><button data-action="flip" data-k="${k}" aria-label="Abrir dato ${esc(f)}">
+      <span class="f"><span>${esc(f)}<small>toca para abrir</small></span></span><span class="b">${b}</span></button></div>`).join('')}</div></div>`,
+  // 11 · Duelo final
+  () => `<div class="slide fire">${gTop('Duelo final')}<h1 class="g-title">Cinco retos, cinco elecciones</h1>
+    <div class="duel-bar"><p>Tapa la columna derecha y ponte a prueba.</p>
+      <button class="btn-light" data-action="duelcover">${S.duelCover?'Destapar toda la columna':'Tapar la columna'}</button></div>
+    <div class="duel"><table class="tbl"><thead><tr><th>Aplicación</th><th>Propiedad clave</th><th>Material</th><th style="text-align:right">¿Acertaste?</th></tr></thead><tbody>
+    ${M.summaryRows.map((r,k)=>{
+      const shown = !S.duelCover || S.duelShown[k];
+      return `<tr><td>${r[0]}</td><td>${r[1]}</td>
+        <td>${shown?`<b style="color:#C4501B">${r[2]}</b>`:`<button class="hide" data-action="duelshow" data-k="${k}">Revelar</button>`}</td>
+        <td><div class="marks"><button class="ok ${S.duel[k]==='ok'?'on':''}" data-action="duelmark" data-k="${k}" data-v="ok" aria-label="Acerté">✓</button><button class="no ${S.duel[k]==='no'?'on':''}" data-action="duelmark" data-k="${k}" data-v="no" aria-label="No acerté">✗</button></div></td></tr>`;}).join('')}
+    </tbody></table></div></div>`,
+  // 12 · Marcador
+  () => {
+    const n = duelScore(), any = Object.keys(S.duel).length > 0;
+    const on = !any ? -1 : (n === 5 ? 0 : n >= 3 ? 1 : 2);
+    return `<div class="slide">${gTop('Marcador')}<h1 class="g-title">${any?`${n} / 5 insignias del duelo`:'Tu marcador'}</h1>
+      <div class="stars">${[0,1,2,3,4].map(k=>`<span class="${k<n?'on':''}">★</span>`).join('')}</div>
+      <div class="ranks">
+        <div class="rank ${on===0?'on':''}"><div class="r">5 / 5 INSIGNIAS</div><h3>Leyenda del acero</h3><p class="muted">Dominaste la expedición completa.</p></div>
+        <div class="rank ${on===1?'on':''}"><div class="r">3–4 INSIGNIAS</div><h3>Herrero experto</h3><p class="muted">Vas muy bien; repasa el reto que se te escapó.</p></div>
+        <div class="rank ${on===2?'on':''}"><div class="r">0–2 INSIGNIAS</div><h3>Aprendiz</h3><p class="muted">Repasa la región 2: Las Torres de Cristal.</p></div>
+      </div>
+      <div class="calm">Sin presión: equivocarse es parte de aprender.</div></div>`;
+  }
+].map((html,k) => ({ kind:'game', html, region: (k>=3 && k<=7) ? k-3 : null }));
+
+/* ======================================================================
+   SECUENCIA DE 29 PANTALLAS
+   ====================================================================== */
+const form = (f, title, note, theme) => ({ kind:'form', f, title, note, theme });
+const SCREENS = [
+  { kind:'id' },
+  form('f1','Cuestionario inicial','Antes de empezar, responde estas preguntas. No hay respuestas buenas ni malas.','std'),
+  ...STD,
+  form('f2','Evaluación','Responde con lo que aprendiste en la clase.','std'),
+  form('f3','Tu opinión sobre la clase','Cuéntanos cómo te pareció la experiencia.','std'),
+  ...GAME,
+  form('f2','Evaluación · segunda ronda','Es el mismo cuestionario de antes. Respóndelo de nuevo con lo que sabes ahora.','game'),
+  form('f3','Tu opinión · segunda ronda','Cuéntanos cómo te pareció esta segunda experiencia.','game'),
+  { kind:'end' }
+];
+
+/* ======================================================================
+   RENDER
+   ====================================================================== */
+function idScreen(){
+  return `<div class="idwrap"><div class="idcard" id="idcard">
+    <div class="kicker">Bienvenido/a</div>
+    <h1>Materiales y Aceros</h1>
+    <p class="lead">Escribe tu nombre (o parte de él) para empezar.</p>
+    <form class="idrow" id="idform" autocomplete="off">
+      <input id="idinput" type="text" placeholder="Ej.: María López" aria-label="Tu nombre">
+      <button class="btn btn-primary" type="submit">Buscar</button>
+    </form>
+    <div class="idmsg" id="idmsg"></div>
+    <div class="sugg" id="sugg"></div>
+  </div></div>`;
+}
+function confirmHTML(p){
+  return `<div class="confirm"><div class="kicker">¿Eres tú?</div><div class="who">${esc(p.nombre)}</div>
+    <div class="actions"><button class="btn btn-primary" data-action="iam" data-id="${p.id}">Soy yo, continuar →</button>
+    <button class="linkbtn" data-action="notme">No soy yo, buscar de nuevo</button></div></div>`;
+}
+function doSearch(){
+  const q = $('#idinput').value, msg = $('#idmsg'), box = $('#sugg');
+  box.innerHTML = '';
+  if (norm(q).replace(/ /g,'').length < 2) { msg.textContent = 'Escribe al menos 2 letras.'; return; }
+  const {full, partial} = search(q);
+  if (full.length === 1) { $('#idcard').innerHTML = confirmHTML(full[0]); return; }
+  const list = (full.length ? full : partial).slice(0,3);
+  if (!list.length) { msg.textContent = 'No encontramos ese nombre. Prueba con tu primer nombre o tu apellido.'; return; }
+  msg.textContent = full.length > 3 ? 'Hay varias coincidencias; escribe un poco más o elige:' : (full.length ? 'Elige tu nombre:' : '¿Quisiste decir…?');
+  box.innerHTML = list.map(p => `<button data-action="pick" data-id="${p.id}">${esc(p.nombre)}</button>`).join('');
+}
+
+function formScreen(s){
+  const url = FORMS[s.f], pending = url.includes('[ID_');
+  return `<div class="formwrap"><h2>${s.title}</h2><p>${s.note}</p>
+    ${pending ? `<div class="pending">Formulario pendiente de configurar<br><small>(sustituye ${s.f.toUpperCase()} en FORMS)</small></div>`
+              : `<iframe src="${url}" title="${esc(s.title)}" loading="lazy">Cargando…</iframe>`}
+    <div class="after"><button class="btn btn-primary" data-action="formdone">Ya lo llené, continuar →</button></div></div>`;
+}
+
+function endScreen(){
+  return `<div class="endwrap"><div><div class="mark">✓</div><h1>¡Gracias, ${esc(firstName())}!</h1>
+    <p>Terminaste todo el recorrido. Tus respuestas quedaron registradas. Ya puedes avisar a la persona encargada.</p></div></div>`;
+}
+
+let toastT;
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2200); }
+
+function render(keepScroll){
+  const s = SCREENS[S.i], stage = $('#stage'), top = stage.scrollTop;
+  const theme = s.kind==='game' || (s.kind==='form' && s.theme==='game') ? 'theme-game' : 'theme-std';
+  const hasNav = s.kind==='std' || s.kind==='game';
+  document.body.className = theme + (hasNav ? '' : ' no-nav');
+
+  // XP al entrar por primera vez a una región
+  if (s.kind==='game' && s.region !== null && !S.visited[s.region]) {
+    S.visited[s.region] = true; S.xp += 100;
+    setTimeout(()=>toast(`+100 XP · ${REGIONS[s.region].name}`), 250);
+  }
+
+  stage.innerHTML = s.kind==='id' ? idScreen() : s.kind==='form' ? formScreen(s) : s.kind==='end' ? endScreen() : s.html();
+  stage.scrollTop = keepScroll ? top : 0;
+
+  $('#progress').style.width = ((S.i+1)/TOTAL*100)+'%';
+  $('#steplabel').textContent = `Pantalla ${S.i+1} / ${TOTAL}`;
+  const chip = $('#namechip');
+  chip.style.display = S.person ? 'flex' : 'none';
+  $('#namechip-text').textContent = S.person ? S.person.nombre : '';
+
+  const prevS = SCREENS[S.i-1];
+  $('#prev').disabled = !prevS || !(prevS.kind==='std' || prevS.kind==='game');
+  const nextS = SCREENS[S.i+1];
+  $('#next').textContent = nextS && nextS.kind==='form' ? 'Continuar →' : 'Siguiente →';
+
+  if (s.kind==='id') {
+    const inp = $('#idinput');
+    inp.focus();
+    $('#idform').addEventListener('submit', e => { e.preventDefault(); doSearch(); });
+    inp.addEventListener('input', () => { if (norm(inp.value).replace(/ /g,'').length >= 3) doSearch(); else { $('#sugg').innerHTML=''; $('#idmsg').textContent=''; } });
+  }
+}
+
+function go(d){ const n = S.i + d; if (n < 0 || n >= TOTAL) return; S.i = n; render(); }
+
+/* ======================================================================
+   EVENTOS
+   ====================================================================== */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]'); if (!b) return;
+  const a = b.dataset.action, d = b.dataset;
+  switch (a) {
+    case 'prev': if (!b.disabled) go(-1); break;
+    case 'next': case 'formdone': go(1); break;
+    case 'pick': $('#idcard').innerHTML = confirmHTML(ROSTER.find(p => p.id == d.id)); break;
+    case 'notme': render(); break;
+    case 'iam':
+      S.person = ROSTER.find(p => p.id == d.id);
+      S.cards = cardsFor(S.person);
+      go(1); break;
+    case 'tab': S.tab[d.r] = +d.k; render(true); break;
+    case 'reveal': S.answers[d.id] = !S.answers[d.id]; render(true); break;
+    case 'equip': S.equip[d.k] = d.v; render(true); break;
+    case 'flip': S.flips[d.k] = !S.flips[d.k]; b.parentElement.classList.toggle('on'); break;
+    case 'duelcover': S.duelCover = !S.duelCover; S.duelShown = {}; render(true); break;
+    case 'duelshow': S.duelShown[d.k] = true; render(true); break;
+    case 'duelmark': S.duel[d.k] = d.v; S.duelShown[d.k] = true; render(true); break;
+  }
+});
+document.addEventListener('keydown', e => {
+  const k = SCREENS[S.i].kind;
+  if (!(k==='std' || k==='game') || e.target.tagName==='INPUT') return;
+  if (e.key==='ArrowRight') go(1);
+  if (e.key==='ArrowLeft' && !$('#prev').disabled) go(-1);
+});
+window.addEventListener('beforeunload', e => {
+  if (S.person && SCREENS[S.i].kind !== 'end') { e.preventDefault(); e.returnValue = ''; }
+});
+
+render();
+</script>
+</body>
+</html>
