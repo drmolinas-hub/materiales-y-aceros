@@ -1,0 +1,48 @@
+rules_version = '2';
+// Reglas de seguridad de Materiales y Aceros.
+// Pégalas en Firebase → Firestore Database → Reglas → Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn()   { return request.auth != null; }
+    function creatorDoc() { return /databases/$(database)/documents/creators/$(request.auth.uid); }
+    function isCreator()  { return signedIn() && exists(creatorDoc()) && get(creatorDoc()).data.estado == 'aprobado'; }
+    function isAdmin()    { return isCreator() && get(creatorDoc()).data.rol == 'admin'; }
+    function changed()    { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // Participantes, preguntas y enlaces: los lee la página de alumnos; solo los cambian creadores.
+    match /students/{id}  { allow read: if true; allow write: if isCreator(); }
+    match /questions/{id} { allow read: if true; allow write: if isCreator(); }
+    match /settings/{id}  { allow read: if true; allow write: if isCreator(); }
+
+    // Progreso: el alumno solo puede escribir el suyo (de un participante que exista); solo los creadores lo leen.
+    match /progress/{sid} {
+      allow read, delete: if isCreator();
+      allow create, update: if request.resource.data.studentId == sid
+        && exists(/databases/$(database)/documents/students/$(sid))
+        && request.resource.data.keys().hasOnly(['studentId','nombre','screen','totalScreens','etapa','std','game','xp',
+                                                 'answers','duel','forms','finished','startedAt','updatedAt']);
+    }
+
+    // Quién fue el primer creador (administrador). Solo se puede crear una vez.
+    match /meta/bootstrap {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Perfiles de creadores.
+    match /creators/{uid} {
+      allow read: if isCreator() || (signedIn() && request.auth.uid == uid);
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nombre','email','rol','estado','createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        && ( (request.resource.data.rol == 'creador' && request.resource.data.estado == 'pendiente')
+          || (request.resource.data.rol == 'admin' && request.resource.data.estado == 'aprobado'
+              && getAfter(/databases/$(database)/documents/meta/bootstrap).data.uid == request.auth.uid) );
+      allow update: if isAdmin()
+        || (isCreator() && request.auth.uid != uid && resource.data.rol != 'admin' && changed().hasOnly(['estado']))
+        || (signedIn() && request.auth.uid == uid && changed().hasOnly(['nombre']));
+      allow delete: if isAdmin() && request.auth.uid != uid;
+    }
+  }
+}

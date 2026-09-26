@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Panel de creadores · Materiales y Aceros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#EEEEEA; --card:#FFFFFF; --panel:#F4F4F1; --ink:#17191D; --muted:#5B5F66; --line:#DCDCD7;
+  --accent:#B8461A; --std:#B8461A; --game:#1E6B73; --ok:#2E7D4F; --no:#B23A3A; --warn:#A86B00; --head:#17191D;
+}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Public Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+
+/* header */
+header{background:var(--head);color:#F6F6F4;padding:0 28px;height:60px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:10}
+header .brand{font-weight:800;font-size:17px}
+header .brand span{color:#E0703F;font-weight:600;margin-left:8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+header .sp{flex:1}
+header .me{font-size:13px;color:#C9CCD2}
+header .me b{color:#fff}
+header .role{display:inline-block;margin-left:6px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:#E0703F;color:#17191D;border-radius:999px;padding:2px 8px}
+header a.tostudents{color:#C9CCD2;font-size:13px;text-decoration:none}
+header a.tostudents:hover{color:#fff}
+.hbtn{border:1.5px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700}
+.hbtn:hover{border-color:#fff}
+
+nav.tabs{display:flex;gap:4px;padding:0 28px;background:var(--head);overflow-x:auto}
+nav.tabs button{padding:10px 16px;border-radius:10px 10px 0 0;color:#C9CCD2;font-weight:700;font-size:14px;white-space:nowrap}
+nav.tabs button.on{background:var(--bg);color:var(--ink)}
+
+main{max-width:1280px;margin:0 auto;padding:26px 28px 60px}
+h1{font-size:28px;font-weight:800;margin-bottom:4px}
+h2{font-size:18px;font-weight:800;margin-bottom:12px}
+.sub{color:var(--muted);margin-bottom:20px}
+.card{background:var(--card);border-radius:14px;padding:20px 22px;margin-bottom:18px;border:1px solid var(--line)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+
+/* forms */
+label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--muted);flex:1;min-width:180px}
+label.f input,label.f select,label.f textarea{padding:10px 12px;border-radius:9px;border:1.5px solid var(--line);background:#fff;font-weight:500;font-size:15px;color:var(--ink)}
+label.f textarea{min-height:84px;resize:vertical}
+label.f textarea#q-opts{min-height:150px}
+label.f input:focus,label.f select:focus,label.f textarea:focus{outline:none;border-color:var(--accent)}
+.checks{display:flex;gap:8px;flex-wrap:wrap}
+.checks label{display:flex;gap:6px;align-items:center;padding:7px 12px;border-radius:999px;background:var(--panel);font-size:13px;font-weight:700;cursor:pointer}
+.btn{padding:10px 18px;border-radius:9px;font-weight:700;font-size:14px;background:var(--accent);color:#fff;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.danger{background:var(--no)}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:7px}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* tables */
+.tblwrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:9px 10px;border-bottom:2px solid var(--accent);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--panel)}
+td.num{white-space:nowrap}
+td.acts{white-space:nowrap;text-align:right}
+td.acts .btn{margin-left:4px}
+.pill{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:2px 9px;border-radius:999px;background:var(--panel);color:var(--muted);white-space:nowrap}
+.pill.ok{background:#E3F1E8;color:var(--ok)}
+.pill.no{background:#F6E3E3;color:var(--no)}
+.pill.warn{background:#F6EDD9;color:var(--warn)}
+.pill.std{background:#F6E6DE;color:var(--std)}
+.pill.game{background:#DDEEEF;color:var(--game)}
+.pbar{width:120px;height:8px;border-radius:4px;background:var(--panel);overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.kpi .l{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-size:32px;font-weight:800;line-height:1.15;margin-top:4px}
+.kpi .d{font-size:12.5px;color:var(--muted)}
+
+/* chart */
+.legend{display:flex;gap:16px;font-size:13px;margin-bottom:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.hbars{display:grid;gap:14px}
+.hbars .grp{display:grid;grid-template-columns:200px 1fr;gap:12px;align-items:center}
+.hbars .grp .t{font-weight:700;font-size:13.5px}
+.hbars .bars{display:grid;gap:2px}
+.hbars .b{display:flex;align-items:center;gap:8px;height:18px}
+.hbars .b .track{flex:1;height:14px;position:relative;border-left:1px solid var(--muted)}
+.hbars .b .fill{height:100%;border-radius:0 4px 4px 0}
+.hbars .b .val{font-size:12.5px;font-weight:700;min-width:84px;color:var(--ink)}
+.hbars .b.none .val{color:var(--muted);font-weight:500}
+.axis{display:grid;grid-template-columns:200px 1fr 92px;gap:12px;font-size:11.5px;color:var(--muted);margin-top:6px}
+.axis div:nth-child(2){display:flex;justify-content:space-between}
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--head);color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;opacity:0;transition:opacity .12s;max-width:260px}
+#tip.on{opacity:1}
+
+/* auth */
+.authwrap{min-height:calc(100vh - 60px);display:grid;place-items:center;padding:24px}
+.authcard{width:min(460px,100%);background:var(--card);border-radius:18px;padding:34px;border:1px solid var(--line)}
+.authcard h1{margin-bottom:6px}
+.authcard form{display:grid;gap:14px;margin-top:20px}
+.authcard .switch{margin-top:16px;font-size:14px;text-align:center}
+.authcard .switch button{color:var(--accent);font-weight:700;text-decoration:underline}
+.msg{margin-top:12px;font-size:14px;min-height:20px}
+.msg.err{color:var(--no)}
+.msg.ok{color:var(--ok)}
+.notice{background:#F6EDD9;border-left:5px solid var(--warn);border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.notice.info{background:#E7EEF7;border-color:#2F5E9A}
+
+/* detail */
+.qline{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.qline .ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px}
+.qline .ic.ok{background:var(--ok)}.qline .ic.no{background:var(--no)}.qline .ic.na{background:var(--line);color:var(--muted)}
+.opt-ok{color:var(--ok);font-weight:700}
+
+.empty{padding:28px;text-align:center;color:var(--muted)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);opacity:0;pointer-events:none;z-index:60;background:var(--head);color:#fff;font-weight:700;padding:11px 20px;border-radius:999px;transition:all .3s}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:760px){
+  header{padding:0 16px;gap:10px}
+  header .me,header a.tostudents{display:none}
+  nav.tabs{padding:0 12px}
+  main{padding:18px 16px 50px}
+  .grid2{grid-template-columns:1fr}
+  .hbars .grp,.axis{grid-template-columns:1fr}
+  .axis div:first-child,.axis div:last-child{display:none}
+  .authcard{padding:24px 20px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Materiales y Aceros<span>Creadores</span></div>
+  <div class="sp"></div>
+  <a class="tostudents" href="./" target="_blank" rel="noopener">Ver página de alumnos ↗</a>
+  <div class="me" id="me"></div>
+  <button class="hbtn" id="logout" style="display:none">Salir</button>
+</header>
+<nav class="tabs" id="tabs" style="display:none"></nav>
+<main id="app"><div class="empty">Cargando…</div></main>
+<div id="tip"></div>
+<div id="toast"></div>
+<script type="module" src="admin.js"></script>
+</body>
+</html>

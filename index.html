@@ -295,11 +295,58 @@ body.theme-game .formwrap h2{font-family:'Oswald',sans-serif;font-weight:600;let
   background:#1C1733;color:var(--gold,#F2B63D);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.06em;font-size:18px;
   padding:12px 22px;border-radius:999px;transition:all .35s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ============ PUNTAJE EN LA BARRA ============ */
+#scorechip{margin-left:18px;display:none;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--onbg);
+  border:1.5px solid rgba(127,127,127,.45);border-radius:999px;padding:4px 12px}
+#scorechip b{color:var(--accent)}
+body.theme-game #scorechip{font-family:'Oswald',sans-serif}
+
+/* ============ PREGUNTAS / RETOS ============ */
+.quiz{display:grid;gap:16px;margin-top:4px}
+.qcard{background:var(--panel);border-radius:14px;padding:18px 20px}
+.qcard .qn{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.qcard h3{font-size:1.1em;line-height:1.35;margin-bottom:12px;font-weight:700}
+.theme-game .qcard h3{font-family:'Nunito Sans',sans-serif;font-weight:800;letter-spacing:0}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.opts button{text-align:left;padding:11px 14px;border-radius:10px;background:var(--slide);border:2px solid var(--line);font-weight:600;transition:border-color .15s}
+.opts button:hover:not([disabled]){border-color:var(--accent)}
+.opts button[disabled]{cursor:default}
+.opts button.ok{background:#2E7D4F;border-color:#2E7D4F;color:#fff}
+.opts button.no{background:#B23A3A;border-color:#B23A3A;color:#fff}
+.opts button.was{border-color:#2E7D4F;border-style:dashed}
+.qfb{margin-top:10px;font-size:.93em;border-left:4px solid;padding:6px 12px;border-radius:4px;background:var(--slide)}
+.qfb.ok{border-color:#2E7D4F}.qfb.no{border-color:#B23A3A}
+.qscore{margin-top:18px;display:flex;align-items:center;gap:16px;background:#17191D;color:#F6F6F4;border-radius:12px;padding:14px 20px}
+body.theme-game .qscore{background:#1C1733}
+.qscore .v{font-size:1.8em;font-weight:800;color:#E0703F;white-space:nowrap}
+body.theme-game .qscore .v{color:var(--gold);font-family:'Oswald',sans-serif}
+
+/* ============ FORMULARIOS (enlace) ============ */
+.formlink{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--slide);color:var(--ink);
+  border-radius:12px;padding:16px 20px;margin-bottom:14px}
+.formlink p{margin:0;color:var(--muted)}
+.formlink a{text-decoration:none}
+
+/* ============ ACCESO CREADORES / CARGA ============ */
+.adminlink{display:block;text-align:center;margin-top:26px;font-size:13px;color:var(--muted);text-decoration:none}
+.adminlink:hover{text-decoration:underline}
+.loading{min-height:100%;display:grid;place-items:center;color:var(--onbg-muted);font-weight:600;letter-spacing:.08em}
+.resume{margin-top:14px;font-size:14px;color:var(--muted)}
+
+@media (max-width:760px){
+  #topbar,#nav{padding:0 16px}
+  #stage{padding:16px}
+  .slide{padding:26px 20px}
+  #scorechip{margin-left:10px}
+  .idcard{padding:28px 20px}
+  .idrow{flex-direction:column}
+}
 </style>
 </head>
 <body class="theme-std no-nav">
 
-<div id="topbar"><div id="progress-track"></div><div id="progress"></div><div id="steplabel"></div></div>
+<div id="topbar"><div id="progress-track"></div><div id="progress"></div><div id="steplabel"></div><div id="scorechip"></div></div>
 <div id="namechip"><span class="dot">●</span><span id="namechip-text"></span></div>
 <main id="stage" aria-live="polite"></main>
 <nav id="nav">
@@ -308,51 +355,106 @@ body.theme-game .formwrap h2{font-family:'Oswald',sans-serif;font-weight:600;let
 </nav>
 <div id="toast"></div>
 
-<script>
-/* ======================================================================
-   CONFIGURACIÓN — sustituye los IDs reales de los Google Forms
-   ====================================================================== */
-const FORMS = {
-  f1: 'https://docs.google.com/forms/d/e/[ID_FORM_1]/viewform?embedded=true', // diagnóstico
-  f2: 'https://docs.google.com/forms/d/e/[ID_FORM_2]/viewform?embedded=true', // examen
-  f3: 'https://docs.google.com/forms/d/e/[ID_FORM_3]/viewform?embedded=true'  // percepción
-};
+<script type="module">
+import { FORMS_DEFAULT } from './config.js';
+import { DEFAULT_ROSTER, DEFAULT_QUESTIONS, TEMAS } from './data.js';
+import { firestore } from './fb.js';
 
-/* Roster (el campo "perfil" decide qué tarjeta se resalta en la clase 2) */
-const ROSTER = [
-  {"id": 1, "nombre": "Nadiesda Yailin Fuentes Hernandez", "perfil": ""},
-  {"id": 2, "nombre": "Dayana Michell Amaya Lopez", "perfil": ""},
-  {"id": 3, "nombre": "Angie Michelle Altamirano Aguilar", "perfil": ""},
-  {"id": 4, "nombre": "Juan Sebastián Meléndez Cruz", "perfil": ""},
-  {"id": 5, "nombre": "Carlos Miguel Cantillano Zelaya", "perfil": "Mixto: OBJETIVO + CHARLA"},
-  {"id": 6, "nombre": "Marcelo Andre Sabillon Muñoz", "perfil": "CHARLA"},
-  {"id": 7, "nombre": "Luis Eduardo Sosa Tello", "perfil": "OBJETIVO"},
-  {"id": 8, "nombre": "André Yan Po Delcid Sú", "perfil": "CHARLA"},
-  {"id": 9, "nombre": "Josue Yassir Bautista Antunez", "perfil": "OBJETIVO"},
-  {"id": 10, "nombre": "Kaylee Fu", "perfil": "Mixto: OBJETIVO + SECRETO + CHARLA"},
-  {"id": 11, "nombre": "Jose Andres Ortiz Rodriguez", "perfil": "CHARLA"},
-  {"id": 12, "nombre": "Yiny Ramón Orellana Santos", "perfil": ""},
-  {"id": 13, "nombre": "Jean Carlos Fernandez Fernandez", "perfil": "SECRETO"},
-  {"id": 14, "nombre": "Kelvin Jafeth Melgar Quiroz", "perfil": "CHARLA"},
-  {"id": 15, "nombre": "José Fernando Hernández Sánchez", "perfil": ""},
-  {"id": 16, "nombre": "José David Velásquez Gonzales", "perfil": ""},
-  {"id": 17, "nombre": "Ada Marina Ruiz Rivera", "perfil": ""},
-  {"id": 18, "nombre": "Angie Cecilia Díaz Betancourth", "perfil": ""}
-];
+/* ======================================================================
+   DATOS — se cargan de Firestore (panel de creadores); si no hay conexión
+   o la base está vacía se usan los valores por defecto de data.js
+   ====================================================================== */
+let ROSTER = DEFAULT_ROSTER;
+let QUESTIONS = DEFAULT_QUESTIONS;
+let FORMS = { ...FORMS_DEFAULT };
+let ONLINE = false;
+
+async function loadData(){
+  try {
+    const f = await firestore(); if (!f) return;
+    const { db, collection, getDocs, doc, getDoc } = f;
+    const [st, qs, fm] = await Promise.all([
+      getDocs(collection(db,'students')), getDocs(collection(db,'questions')), getDoc(doc(db,'settings','forms'))
+    ]);
+    if (!st.empty) ROSTER = st.docs.map(d => ({ id:d.id, ...d.data() })).filter(p => p.activo !== false);
+    if (!qs.empty) QUESTIONS = qs.docs.map(d => ({ id:d.id, ...d.data() }));
+    if (fm.exists()) Object.entries(fm.data()).forEach(([k,v]) => { if (v) FORMS[k] = v; });
+    ONLINE = true;
+  } catch (e) { console.warn('Sin conexión con la base de datos; se usan los datos por defecto.', e); }
+}
+
+const questionsFor = (clase, temas) => QUESTIONS
+  .filter(q => q.activo !== false && q.clase === clase && temas.includes(q.tema))
+  .sort((a,b) => (a.tema > b.tema) - (a.tema < b.tema) || (a.orden||0) - (b.orden||0));
+
 
 /* ======================================================================
    ESTADO
    ====================================================================== */
-const S = { i:0, person:null, cards:[], xp:0, visited:{}, tab:{}, answers:{}, equip:{}, duel:{}, duelCover:true, duelShown:{}, flips:{} };
-const TOTAL = 29;
+const S = { i:0, person:null, cards:[], visited:{}, tab:{}, answers:{}, equip:{}, duel:{}, duelCover:true, duelShown:{}, flips:{},
+            qa:{}, forms:{}, startedAt:0 };
+let TOTAL = 1;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 const firstName = () => S.person ? S.person.nombre.split(' ')[0] : '';
 
+/* ======================================================================
+   PUNTAJE — se califica en el momento en que el alumno responde
+   ====================================================================== */
+function classScore(clase){
+  const qs = QUESTIONS.filter(q => q.activo !== false && q.clase === clase);
+  let ok = 0, n = 0, pts = 0, max = 0;
+  qs.forEach(q => { const p = q.puntos || 1; max += p; const a = S.qa[q.id]; if (a) { n++; if (a.ok) { ok++; pts += p; } } });
+  return { ok, n, total: qs.length, pts, max };
+}
+/* XP de la clase personalizada: 50 por explorar cada región y hasta 50 más por sus retos
+   (si una región no tiene retos, explorarla vale los 100). */
+function regionXP(ri){
+  if (!S.visited[ri]) return 0;
+  const qs = QUESTIONS.filter(q => q.activo !== false && q.clase === 'game' && TEMAS[q.tema] && TEMAS[q.tema].region === ri);
+  if (!qs.length) return 100;
+  const ok = qs.filter(q => S.qa[q.id] && S.qa[q.id].ok).length;
+  return 50 + Math.round(50 * ok / qs.length);
+}
+const totalXP = () => [0,1,2,3,4].reduce((s,ri) => s + regionXP(ri), 0);
+
+/* ======================================================================
+   PROGRESO — se guarda en el navegador (para retomar) y en Firestore
+   (para el panel de creadores). Los alumnos solo escriben, nunca leen.
+   ====================================================================== */
+const KEEP = ['i','visited','equip','duel','flips','qa','forms','startedAt'];
+const LS = id => 'mya_progress_' + id;
+function saveLocal(){
+  if (!S.person) return;
+  try { localStorage.setItem(LS(S.person.id), JSON.stringify(Object.fromEntries(KEEP.map(k => [k, S[k]])))); } catch (e) {}
+}
+function loadLocal(id){
+  try { return JSON.parse(localStorage.getItem(LS(id)) || 'null'); } catch (e) { return null; }
+}
+let syncT;
+function sync(){
+  saveLocal();
+  if (!ONLINE || !S.person) return;
+  clearTimeout(syncT);
+  syncT = setTimeout(async () => {
+    try {
+      const { db, doc, setDoc } = await firestore();
+      const s = SCREENS[S.i];
+      await setDoc(doc(db,'progress',String(S.person.id)), {
+        studentId: String(S.person.id), nombre: S.person.nombre,
+        screen: S.i + 1, totalScreens: TOTAL, etapa: s.label || '',
+        std: classScore('std'), game: classScore('game'), xp: totalXP(),
+        answers: S.qa, duel: S.duel, forms: S.forms,
+        finished: s.kind === 'end', startedAt: S.startedAt, updatedAt: Date.now()
+      });
+    } catch (e) { console.warn('No se pudo guardar el progreso', e); }
+  }, 600);
+}
+
 /* Tarjetas a resaltar según el campo perfil */
 function cardsFor(p){
-  const t = norm(p.perfil).toUpperCase();
+  const t = norm(p.perfil || '').toUpperCase();
   return ['OBJETIVO','SECRETO','CHARLA','DESAFIO'].filter(k => t.includes(k)).map(k => k.toLowerCase());
 }
 
@@ -574,7 +676,7 @@ const REGIONS = [
             desafio:{t:'Una broca industrial: ¿inoxidable o HSS?', a:'HSS: soporta altas velocidades y temperaturas.'} } }
 ];
 
-const xpChip = (xp = S.xp) => `<span class="xpchip">XP: ${xp} / 500 <span class="xpbar"><i style="width:${xp/5}%"></i></span></span>`;
+const xpChip = (xp = totalXP()) => `<span class="xpchip">XP: ${xp} / 500 <span class="xpbar"><i style="width:${xp/5}%"></i></span></span>`;
 const gTop = k => `<div class="g-top"><span class="g-kicker">${k}</span>${xpChip()}</div>`;
 
 function cardHTML(ri, key){
@@ -650,7 +752,7 @@ const GAME = [
   () => `<div class="slide">${gTop('Antes de salir')}<h1 class="g-title">Cómo funciona</h1>
     <div class="how">
       <div class="box"><div class="ic" style="background:#1E6B73">➜</div><h3>Avanza región a región</h3><p>Cinco regiones, cada una con un tema de la clase. Recorre el mapa en orden.</p></div>
-      <div class="box"><div class="ic" style="background:#F2B63D;color:#1C1733">★</div><h3>Gana XP e insignias</h3><p>Cada región completada suma 100 XP y una insignia. La meta: 500 XP.</p></div>
+      <div class="box"><div class="ic" style="background:#F2B63D;color:#1C1733">★</div><h3>Gana XP e insignias</h3><p>Explorar cada región da 50 XP y sus retos, hasta 50 más. La meta: 500 XP.</p></div>
       <div class="box"><div class="ic" style="background:#C4501B">⚔</div><h3>Defiende lo aprendido</h3><p>Al final te espera un duelo de cinco retos.</p></div>
     </div>
     <p style="margin-top:24px;font-weight:700">En cada región hay cuatro tipos de tarjeta. Empieza por la que más te llame… o hazlas todas.</p>
@@ -666,8 +768,8 @@ const GAME = [
   () => regionSlide(0), () => regionSlide(1), () => regionSlide(2), () => regionSlide(3), () => regionSlide(4),
   // 9 · Campamento
   () => `<div class="slide">${gTop('Campamento')}<h1 class="g-title">¡Recorriste las cinco regiones!</h1>
-    <div class="badges">${REGIONS.map((R,k)=>`<div class="badge ${S.visited[k]?'':'off'}"><div class="medal" style="background:${R.color}">${k+1}</div><b>${R.name}</b><small>${S.visited[k]?'+100 XP':'Pendiente'}</small></div>`).join('')}</div>
-    <div class="bigxp"><span class="v">${S.xp}</span><div class="bar"><i style="width:${S.xp/5}%"></i></div><span style="font-family:Oswald;font-size:20px">/ 500 XP</span></div></div>`,
+    <div class="badges">${REGIONS.map((R,k)=>`<div class="badge ${S.visited[k]?'':'off'}"><div class="medal" style="background:${R.color}">${k+1}</div><b>${R.name}</b><small>${S.visited[k]?'+'+regionXP(k)+' XP':'Pendiente'}</small></div>`).join('')}</div>
+    <div class="bigxp"><span class="v">${totalXP()}</span><div class="bar"><i style="width:${totalXP()/5}%"></i></div><span style="font-family:Oswald;font-size:20px">/ 500 XP</span></div></div>`,
   // 10 · Cofre
   () => `<div class="slide">${gTop('Antes del duelo')}<h1 class="g-title">El cofre de datos</h1>
     <p class="lead">Ocho datos que vas a necesitar. Toca cada uno para abrirlo.</p>
@@ -700,20 +802,38 @@ const GAME = [
 ].map((html,k) => ({ kind:'game', html, region: (k>=3 && k<=7) ? k-3 : null }));
 
 /* ======================================================================
-   SECUENCIA DE 29 PANTALLAS
+   SECUENCIA DE PANTALLAS (se arma cuando llegan las preguntas)
    ====================================================================== */
-const form = (f, title, note, theme) => ({ kind:'form', f, title, note, theme });
-const SCREENS = [
-  { kind:'id' },
-  form('f1','Cuestionario inicial','Antes de empezar, responde estas preguntas. No hay respuestas buenas ni malas.','std'),
-  ...STD,
-  form('f2','Evaluación','Responde con lo que aprendiste en la clase.','std'),
-  form('f3','Tu opinión sobre la clase','Cuéntanos cómo te pareció la experiencia.','std'),
-  ...GAME,
-  form('f2','Evaluación · segunda ronda','Es el mismo cuestionario de antes. Respóndelo de nuevo con lo que sabes ahora.','game'),
-  form('f3','Tu opinión · segunda ronda','Cuéntanos cómo te pareció esta segunda experiencia.','game'),
-  { kind:'end' }
-];
+const form = (f, key, title, note, theme) => ({ kind:'form', f, key, title, note, theme, label: title });
+const quiz = (clase, temas) => ({ kind:'quiz', clase, temas, theme: clase,
+  label: (clase === 'game' ? 'Retos · ' : 'Repaso · ') + temas.map(t => TEMAS[t].nombre).join(' y ') });
+/* Después de qué diapositiva de la clase estándar va cada bloque de preguntas */
+const STD_QUIZ = { 2:['t1'], 3:['t2'], 4:['t3'], 6:['t4'], 7:['t5'], 8:['t6'] };
+const temasOfRegion = ri => Object.keys(TEMAS).filter(t => TEMAS[t].region === ri);
+
+let SCREENS = [{ kind:'loading' }];
+function buildScreens(){
+  const out = [{ kind:'id', label:'Identificación' }];
+  out.push(form('f1','f1','Cuestionario inicial','Antes de empezar, responde estas preguntas. No hay respuestas buenas ni malas.','std'));
+  STD.forEach((sc,k) => {
+    out.push({ ...sc, label:`Clase estándar · ${k+1}/${STD.length}` });
+    const t = STD_QUIZ[k];
+    if (t && questionsFor('std', t).length) out.push(quiz('std', t));
+  });
+  out.push(form('f2','f2_std','Evaluación','Responde con lo que aprendiste en la clase.','std'));
+  out.push(form('f3','f3_std','Tu opinión sobre la clase','Cuéntanos cómo te pareció la experiencia.','std'));
+  GAME.forEach((sc,k) => {
+    out.push({ ...sc, label:`Clase personalizada · ${k+1}/${GAME.length}` });
+    if (sc.region !== null) {
+      const t = temasOfRegion(sc.region);
+      if (questionsFor('game', t).length) out.push(quiz('game', t));
+    }
+  });
+  out.push(form('f2','f2_game','Evaluación · segunda ronda','Es el mismo cuestionario de antes. Respóndelo de nuevo con lo que sabes ahora.','game'));
+  out.push(form('f3','f3_game','Tu opinión · segunda ronda','Cuéntanos cómo te pareció esta segunda experiencia.','game'));
+  out.push({ kind:'end', label:'Terminado' });
+  SCREENS = out; TOTAL = out.length;
+}
 
 /* ======================================================================
    RENDER
@@ -729,11 +849,13 @@ function idScreen(){
     </form>
     <div class="idmsg" id="idmsg"></div>
     <div class="sugg" id="sugg"></div>
+    <a class="adminlink" href="admin.html">Acceso para creadores</a>
   </div></div>`;
 }
 function confirmHTML(p){
+  const saved = loadLocal(p.id);
   return `<div class="confirm"><div class="kicker">¿Eres tú?</div><div class="who">${esc(p.nombre)}</div>
-    <div class="actions"><button class="btn btn-primary" data-action="iam" data-id="${p.id}">Soy yo, continuar →</button>
+    <div class="actions"><button class="btn btn-primary" data-action="iam" data-id="${esc(p.id)}">${saved && saved.i > 0 ? 'Soy yo, seguir donde lo dejé →' : 'Soy yo, continuar →'}</button>
     <button class="linkbtn" data-action="notme">No soy yo, buscar de nuevo</button></div></div>`;
 }
 function doSearch(){
@@ -743,17 +865,46 @@ function doSearch(){
   const {full, partial} = search(q);
   if (full.length === 1) { $('#idcard').innerHTML = confirmHTML(full[0]); return; }
   const list = (full.length ? full : partial).slice(0,3);
-  if (!list.length) { msg.textContent = 'No encontramos ese nombre. Prueba con tu primer nombre o tu apellido.'; return; }
+  if (!list.length) { msg.textContent = 'No encontramos ese nombre. Prueba con tu primer nombre o tu apellido, o avisa a la persona encargada.'; return; }
   msg.textContent = full.length > 3 ? 'Hay varias coincidencias; escribe un poco más o elige:' : (full.length ? 'Elige tu nombre:' : '¿Quisiste decir…?');
-  box.innerHTML = list.map(p => `<button data-action="pick" data-id="${p.id}">${esc(p.nombre)}</button>`).join('');
+  box.innerHTML = list.map(p => `<button data-action="pick" data-id="${esc(p.id)}">${esc(p.nombre)}</button>`).join('');
 }
 
 function formScreen(s){
-  const url = FORMS[s.f], pending = url.includes('[ID_');
-  return `<div class="formwrap"><h2>${s.title}</h2><p>${s.note}</p>
-    ${pending ? `<div class="pending">Formulario pendiente de configurar<br><small>(sustituye ${s.f.toUpperCase()} en FORMS)</small></div>`
-              : `<iframe src="${url}" title="${esc(s.title)}" loading="lazy">Cargando…</iframe>`}
-    <div class="after"><button class="btn btn-primary" data-action="formdone">Ya lo llené, continuar →</button></div></div>`;
+  const url = String(FORMS[s.f] || '').trim();
+  const open = url.replace(/([?&])embedded=true&?/, '$1').replace(/[?&]$/, '');
+  const embed = /docs\.google\.com\/forms\/.+\/viewform/.test(open) ? open + (open.includes('?') ? '&' : '?') + 'embedded=true' : null;
+  const body = !url
+    ? `<div class="pending">Este formulario todavía no está disponible.<br><small>Avisa a la persona encargada.</small></div>`
+    : `<div class="formlink"><p>${embed ? 'Si el formulario no se ve abajo, ábrelo' : 'Ábrelo'} en otra pestaña y vuelve aquí cuando lo envíes.</p>
+         <a class="btn btn-primary" href="${esc(open)}" target="_blank" rel="noopener">Abrir formulario ↗</a></div>
+       ${embed ? `<iframe src="${esc(embed)}" title="${esc(s.title)}" loading="lazy">Cargando…</iframe>` : ''}`;
+  return `<div class="formwrap"><h2>${s.title}</h2><p>${s.note}</p>${body}
+    <div class="after"><button class="btn btn-primary" data-action="formdone">Ya lo envié, continuar →</button></div></div>`;
+}
+
+function quizScreen(s){
+  const qs = questionsFor(s.clase, s.temas), game = s.clase === 'game';
+  const ri = game ? TEMAS[s.temas[0]].region : null;
+  const head = game
+    ? `${gTop('Retos · ' + REGIONS[ri].name)}<h1 class="g-title">Supera los retos de la región</h1>`
+    : stdHead('Repaso · ' + s.temas.map(t => TEMAS[t].nombre).join(' y '), 'Ponte a prueba');
+  const items = qs.map((q,k) => {
+    const a = S.qa[q.id];
+    const opts = (q.opciones || []).map((o,j) => {
+      let cls = '';
+      if (a) { if (j === a.c) cls = a.ok ? 'ok' : 'no'; else if (j === +q.correcta && !a.ok) cls = 'was'; }
+      return `<button data-action="answer" data-q="${esc(q.id)}" data-j="${j}" class="${cls}" ${a ? 'disabled' : ''}>${esc(o)}</button>`;
+    }).join('');
+    const fb = a ? `<div class="qfb ${a.ok ? 'ok' : 'no'}"><b>${a.ok ? '¡Correcto!' : 'No era esa.'}</b> ${esc(q.explicacion || '')}</div>` : '';
+    return `<div class="qcard"><div class="qn">${game ? 'Reto' : 'Pregunta'} ${k+1} de ${qs.length}</div>
+      <h3>${esc(q.texto)}</h3><div class="opts">${opts}</div>${fb}</div>`;
+  }).join('');
+  const done = qs.filter(q => S.qa[q.id]), ok = done.filter(q => S.qa[q.id].ok).length;
+  const msg = done.length < qs.length ? 'Responde todas para cerrar este bloque.'
+            : game ? `Región completada: ${regionXP(ri)} XP de 100.` : '¡Bloque completado!';
+  const foot = done.length ? `<div class="qscore"><span class="v">${ok} / ${qs.length}</span><span>${msg}</span></div>` : '';
+  return `<div class="slide">${head}<div class="quiz">${items}</div>${foot}</div>`;
 }
 
 function endScreen(){
@@ -764,29 +915,40 @@ function endScreen(){
 let toastT;
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2200); }
 
+const isGameScreen = s => s.kind==='game' || ((s.kind==='form' || s.kind==='quiz') && s.theme==='game');
+const navKinds = ['std','game','quiz'];
+
 function render(keepScroll){
   const s = SCREENS[S.i], stage = $('#stage'), top = stage.scrollTop;
-  const theme = s.kind==='game' || (s.kind==='form' && s.theme==='game') ? 'theme-game' : 'theme-std';
-  const hasNav = s.kind==='std' || s.kind==='game';
-  document.body.className = theme + (hasNav ? '' : ' no-nav');
+  const hasNav = navKinds.includes(s.kind);
+  document.body.className = (isGameScreen(s) ? 'theme-game' : 'theme-std') + (hasNav ? '' : ' no-nav');
 
   // XP al entrar por primera vez a una región
   if (s.kind==='game' && s.region !== null && !S.visited[s.region]) {
-    S.visited[s.region] = true; S.xp += 100;
-    setTimeout(()=>toast(`+100 XP · ${REGIONS[s.region].name}`), 250);
+    S.visited[s.region] = true;
+    const hasRetos = questionsFor('game', temasOfRegion(s.region)).length > 0;
+    setTimeout(()=>toast(`+${hasRetos ? 50 : 100} XP · ${REGIONS[s.region].name}`), 250);
   }
 
-  stage.innerHTML = s.kind==='id' ? idScreen() : s.kind==='form' ? formScreen(s) : s.kind==='end' ? endScreen() : s.html();
+  stage.innerHTML = s.kind==='loading' ? '<div class="loading">CARGANDO…</div>'
+    : s.kind==='id' ? idScreen() : s.kind==='form' ? formScreen(s) : s.kind==='quiz' ? quizScreen(s)
+    : s.kind==='end' ? endScreen() : s.html();
   stage.scrollTop = keepScroll ? top : 0;
 
   $('#progress').style.width = ((S.i+1)/TOTAL*100)+'%';
-  $('#steplabel').textContent = `Pantalla ${S.i+1} / ${TOTAL}`;
+  $('#steplabel').textContent = s.kind==='loading' ? '' : `Pantalla ${S.i+1} / ${TOTAL}`;
   const chip = $('#namechip');
   chip.style.display = S.person ? 'flex' : 'none';
   $('#namechip-text').textContent = S.person ? S.person.nombre : '';
 
+  const sc = $('#scorechip');
+  const inClass = S.person && !['id','end','loading'].includes(s.kind);
+  if (inClass && isGameScreen(s)) { sc.style.display = 'inline-block'; sc.innerHTML = `XP <b>${totalXP()}</b> / 500`; }
+  else if (inClass && classScore('std').total) { const c = classScore('std'); sc.style.display = 'inline-block'; sc.innerHTML = `Aciertos <b>${c.ok}</b> / ${c.total}`; }
+  else sc.style.display = 'none';
+
   const prevS = SCREENS[S.i-1];
-  $('#prev').disabled = !prevS || !(prevS.kind==='std' || prevS.kind==='game');
+  $('#prev').disabled = !prevS || !navKinds.includes(prevS.kind);
   const nextS = SCREENS[S.i+1];
   $('#next').textContent = nextS && nextS.kind==='form' ? 'Continuar →' : 'Siguiente →';
 
@@ -798,7 +960,7 @@ function render(keepScroll){
   }
 }
 
-function go(d){ const n = S.i + d; if (n < 0 || n >= TOTAL) return; S.i = n; render(); }
+function go(d){ const n = S.i + d; if (n < 0 || n >= TOTAL) return; S.i = n; render(); sync(); }
 
 /* ======================================================================
    EVENTOS
@@ -808,25 +970,41 @@ document.addEventListener('click', e => {
   const a = b.dataset.action, d = b.dataset;
   switch (a) {
     case 'prev': if (!b.disabled) go(-1); break;
-    case 'next': case 'formdone': go(1); break;
+    case 'next': go(1); break;
+    case 'formdone': S.forms[SCREENS[S.i].key] = Date.now(); go(1); break;
     case 'pick': $('#idcard').innerHTML = confirmHTML(ROSTER.find(p => p.id == d.id)); break;
     case 'notme': render(); break;
-    case 'iam':
+    case 'iam': {
       S.person = ROSTER.find(p => p.id == d.id);
       S.cards = cardsFor(S.person);
-      go(1); break;
+      const saved = loadLocal(S.person.id);
+      if (saved && saved.i > 0) {
+        KEEP.forEach(k => { if (saved[k] !== undefined) S[k] = saved[k]; });
+        S.i = Math.min(Math.max(saved.i, 1), TOTAL-1);
+        render(); sync(); toast('Seguimos donde lo dejaste');
+      } else { S.startedAt = Date.now(); go(1); }
+      break;
+    }
+    case 'answer': {
+      const q = QUESTIONS.find(x => x.id === d.q);
+      if (!q || S.qa[q.id]) break;
+      const j = +d.j, ok = j === +q.correcta;
+      S.qa[q.id] = { c:j, ok, clase:q.clase, tema:q.tema, t:Date.now() };
+      toast(ok ? (q.clase==='game' ? '¡Reto superado!' : '¡Correcto!') : 'Casi… lee la explicación');
+      render(true); sync(); break;
+    }
     case 'tab': S.tab[d.r] = +d.k; render(true); break;
     case 'reveal': S.answers[d.id] = !S.answers[d.id]; render(true); break;
-    case 'equip': S.equip[d.k] = d.v; render(true); break;
+    case 'equip': S.equip[d.k] = d.v; render(true); sync(); break;
     case 'flip': S.flips[d.k] = !S.flips[d.k]; b.parentElement.classList.toggle('on'); break;
     case 'duelcover': S.duelCover = !S.duelCover; S.duelShown = {}; render(true); break;
     case 'duelshow': S.duelShown[d.k] = true; render(true); break;
-    case 'duelmark': S.duel[d.k] = d.v; S.duelShown[d.k] = true; render(true); break;
+    case 'duelmark': S.duel[d.k] = d.v; S.duelShown[d.k] = true; render(true); sync(); break;
   }
 });
 document.addEventListener('keydown', e => {
   const k = SCREENS[S.i].kind;
-  if (!(k==='std' || k==='game') || e.target.tagName==='INPUT') return;
+  if (!navKinds.includes(k) || e.target.tagName==='INPUT') return;
   if (e.key==='ArrowRight') go(1);
   if (e.key==='ArrowLeft' && !$('#prev').disabled) go(-1);
 });
@@ -835,6 +1013,7 @@ window.addEventListener('beforeunload', e => {
 });
 
 render();
+loadData().then(() => { buildScreens(); S.i = 0; render(); });
 </script>
 </body>
 </html>
