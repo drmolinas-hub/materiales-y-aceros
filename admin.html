@@ -134,7 +134,7 @@ td.acts .btn{margin-left:4px}
 
 @media (max-width:760px){
   header{padding:0 16px;gap:10px}
-  header .me,header a.tostudents{display:none}
+  header .me,header a.tostudents:not(.pvlink){display:none}
   nav.tabs{padding:0 12px}
   main{padding:18px 16px 50px}
   .grid2{grid-template-columns:1fr}
@@ -148,7 +148,8 @@ td.acts .btn{margin-left:4px}
 <header>
   <div class="brand">Materiales y Aceros<span>Creadores</span></div>
   <div class="sp"></div>
-  <a class="tostudents" href="./" target="_blank" rel="noopener">Ver página de alumnos ↗</a>
+  <a class="tostudents pvlink" href="./?preview=1" target="_blank" rel="noopener">Probar como estudiante ↗</a>
+  <a class="tostudents" href="./" target="_blank" rel="noopener">Página de alumnos ↗</a>
   <div class="me" id="me"></div>
   <button class="hbtn" id="logout" style="display:none">Salir</button>
 </header>

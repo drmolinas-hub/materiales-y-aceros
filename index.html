@@ -334,6 +334,27 @@ body.theme-game .qscore .v{color:var(--gold);font-family:'Oswald',sans-serif}
 .loading{min-height:100%;display:grid;place-items:center;color:var(--onbg-muted);font-weight:600;letter-spacing:.08em}
 .resume{margin-top:14px;font-size:14px;color:var(--muted)}
 
+/* ============ VISTA DE CREADOR (?preview=1) ============ */
+#pv{position:fixed;left:16px;bottom:86px;z-index:25;font-size:13px;color:#fff}
+body.no-nav #pv{bottom:16px}
+#pv .pvpill{display:flex;align-items:center;gap:8px;background:#2B5C8A;border-radius:999px;padding:7px 14px;font-weight:700;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;border:0;color:#fff;font-size:13px}
+#pv .pvbox{display:none;position:absolute;left:0;bottom:44px;width:290px;background:#1F2A36;border-radius:12px;padding:14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#pv.open .pvbox{display:block}
+#pv .pvbox p{color:#C9D3DD;margin:0 0 10px;line-height:1.4}
+#pv label{display:block;font-weight:700;margin:10px 0 4px}
+#pv select{width:100%;padding:7px;border-radius:7px;border:0;font-size:13px}
+#pv .pvcards{display:flex;flex-wrap:wrap;gap:6px}
+#pv .pvcards button{border:1.5px solid #6D8AA6;background:none;color:#fff;border-radius:7px;padding:4px 8px;font-size:12px;cursor:pointer}
+#pv .pvcards button.on{background:#6D8AA6}
+#pv .pvrow{display:flex;gap:8px;margin-top:12px}
+#pv .pvrow button,#pv .pvrow a{flex:1;text-align:center;border:0;border-radius:7px;padding:7px;font-size:12px;font-weight:700;
+  background:#3B4B5C;color:#fff;cursor:pointer;text-decoration:none}
+.pvnote{background:#E3ECF5;color:#1F3A56;border-radius:8px;padding:10px 12px;font-size:14px;margin-bottom:14px}
+.pventer{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line);text-align:center}
+.pventer p{font-size:13px;color:var(--muted);margin-bottom:10px}
+
 @media (max-width:760px){
   #topbar,#nav{padding:0 16px}
   #stage{padding:16px}
@@ -354,6 +375,7 @@ body.theme-game .qscore .v{color:var(--gold);font-family:'Oswald',sans-serif}
   <button class="btn btn-primary" id="next" data-action="next">Siguiente →</button>
 </nav>
 <div id="toast"></div>
+<div id="pv" hidden></div>
 
 <script type="module">
 import { FORMS_DEFAULT } from './config.js';
@@ -368,6 +390,10 @@ let ROSTER = DEFAULT_ROSTER;
 let QUESTIONS = DEFAULT_QUESTIONS;
 let FORMS = { ...FORMS_DEFAULT };
 let ONLINE = false;
+/* Vista de creador: se abre desde el panel con ?preview=1. Mismo recorrido que un alumno,
+   pero no escribe en Firestore y guarda su avance aparte en este navegador. */
+const PREVIEW = new URLSearchParams(location.search).has('preview');
+const PREVIEW_PERSON = { id:'__preview', nombre:'Estudiante de prueba', perfil:'OBJETIVO' };
 
 async function loadData(){
   try {
@@ -424,7 +450,7 @@ const totalXP = () => [0,1,2,3,4].reduce((s,ri) => s + regionXP(ri), 0);
    (para el panel de creadores). Los alumnos solo escriben, nunca leen.
    ====================================================================== */
 const KEEP = ['i','visited','equip','duel','flips','qa','forms','startedAt'];
-const LS = id => 'mya_progress_' + id;
+const LS = id => (PREVIEW ? 'mya_preview_' : 'mya_progress_') + id;
 function saveLocal(){
   if (!S.person) return;
   try { localStorage.setItem(LS(S.person.id), JSON.stringify(Object.fromEntries(KEEP.map(k => [k, S[k]])))); } catch (e) {}
@@ -435,6 +461,7 @@ function loadLocal(id){
 let syncT;
 function sync(){
   saveLocal();
+  if (PREVIEW) { pvPanel(); return; }
   if (!ONLINE || !S.person) return;
   clearTimeout(syncT);
   syncT = setTimeout(async () => {
@@ -849,7 +876,9 @@ function idScreen(){
     </form>
     <div class="idmsg" id="idmsg"></div>
     <div class="sugg" id="sugg"></div>
-    <a class="adminlink" href="admin.html">Acceso para creadores</a>
+    ${PREVIEW ? `<div class="pventer"><p>Vista de creador: busca a un participante para verlo con sus tarjetas, o entra con uno de prueba.</p>
+      <button class="btn btn-primary" data-action="pventer">Entrar como estudiante de prueba →</button></div>`
+      : `<a class="adminlink" href="admin.html">Acceso para creadores</a>`}
   </div></div>`;
 }
 function confirmHTML(p){
@@ -879,7 +908,8 @@ function formScreen(s){
     : `<div class="formlink"><p>${embed ? 'Si el formulario no se ve abajo, ábrelo' : 'Ábrelo'} en otra pestaña y vuelve aquí cuando lo envíes.</p>
          <a class="btn btn-primary" href="${esc(open)}" target="_blank" rel="noopener">Abrir formulario ↗</a></div>
        ${embed ? `<iframe src="${esc(embed)}" title="${esc(s.title)}" loading="lazy">Cargando…</iframe>` : ''}`;
-  return `<div class="formwrap"><h2>${s.title}</h2><p>${s.note}</p>${body}
+  const pvn = PREVIEW ? `<div class="pvnote"><b>Vista de creador:</b> no envíes el formulario, o quedará una respuesta de prueba en Google Forms.</div>` : '';
+  return `<div class="formwrap"><h2>${s.title}</h2><p>${s.note}</p>${pvn}${body}
     <div class="after"><button class="btn btn-primary" data-action="formdone">Ya lo envié, continuar →</button></div></div>`;
 }
 
@@ -921,7 +951,7 @@ const navKinds = ['std','game','quiz'];
 function render(keepScroll){
   const s = SCREENS[S.i], stage = $('#stage'), top = stage.scrollTop;
   const hasNav = navKinds.includes(s.kind);
-  document.body.className = (isGameScreen(s) ? 'theme-game' : 'theme-std') + (hasNav ? '' : ' no-nav');
+  document.body.className = (isGameScreen(s) ? 'theme-game' : 'theme-std') + (hasNav ? '' : ' no-nav') + (PREVIEW ? ' preview' : '');
 
   // XP al entrar por primera vez a una región
   if (s.kind==='game' && s.region !== null && !S.visited[s.region]) {
@@ -939,7 +969,8 @@ function render(keepScroll){
   $('#steplabel').textContent = s.kind==='loading' ? '' : `Pantalla ${S.i+1} / ${TOTAL}`;
   const chip = $('#namechip');
   chip.style.display = S.person ? 'flex' : 'none';
-  $('#namechip-text').textContent = S.person ? S.person.nombre : '';
+  $('#namechip-text').textContent = S.person ? S.person.nombre + (PREVIEW ? ' · prueba' : '') : '';
+  pvPanel();
 
   const sc = $('#scorechip');
   const inClass = S.person && !['id','end','loading'].includes(s.kind);
@@ -974,8 +1005,9 @@ document.addEventListener('click', e => {
     case 'formdone': S.forms[SCREENS[S.i].key] = Date.now(); go(1); break;
     case 'pick': $('#idcard').innerHTML = confirmHTML(ROSTER.find(p => p.id == d.id)); break;
     case 'notme': render(); break;
+    case 'pventer':
     case 'iam': {
-      S.person = ROSTER.find(p => p.id == d.id);
+      S.person = a === 'pventer' ? PREVIEW_PERSON : ROSTER.find(p => p.id == d.id);
       S.cards = cardsFor(S.person);
       const saved = loadLocal(S.person.id);
       if (saved && saved.i > 0) {
@@ -1000,6 +1032,16 @@ document.addEventListener('click', e => {
     case 'duelcover': S.duelCover = !S.duelCover; S.duelShown = {}; render(true); break;
     case 'duelshow': S.duelShown[d.k] = true; render(true); break;
     case 'duelmark': S.duel[d.k] = d.v; S.duelShown[d.k] = true; render(true); sync(); break;
+    case 'pvtoggle': $('#pv').classList.toggle('open'); break;
+    case 'pvcard': {
+      S.cards = S.cards.includes(d.k) ? S.cards.filter(c => c !== d.k) : [...S.cards, d.k];
+      render(true); break;
+    }
+    case 'pvreset':
+      if (S.person) try { localStorage.removeItem(LS(S.person.id)); } catch (e) {}
+      Object.assign(S, { i:0, person:null, cards:[], visited:{}, tab:{}, answers:{}, equip:{}, duel:{}, duelCover:true,
+                         duelShown:{}, flips:{}, qa:{}, forms:{}, startedAt:0 });
+      render(); toast('Recorrido reiniciado'); break;
   }
 });
 document.addEventListener('keydown', e => {
@@ -1009,7 +1051,26 @@ document.addEventListener('keydown', e => {
   if (e.key==='ArrowLeft' && !$('#prev').disabled) go(-1);
 });
 window.addEventListener('beforeunload', e => {
-  if (S.person && SCREENS[S.i].kind !== 'end') { e.preventDefault(); e.returnValue = ''; }
+  if (!PREVIEW && S.person && SCREENS[S.i].kind !== 'end') { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* Herramientas de la vista de creador */
+function pvPanel(){
+  const el = $('#pv'); if (!PREVIEW || !SCREENS.length || SCREENS[0].kind === 'loading') return;
+  el.hidden = false;
+  const open = el.classList.contains('open');
+  const opts = SCREENS.map((s,k) => `<option value="${k}" ${k===S.i?'selected':''}>${k+1}. ${esc(s.label || s.title || s.kind)}</option>`).join('');
+  const cards = ['objetivo','secreto','charla','desafio'].map(k =>
+    `<button data-action="pvcard" data-k="${k}" class="${S.cards.includes(k)?'on':''}" ${S.person?'':'disabled'}>${k==='desafio'?'DESAFÍO':k.toUpperCase()}</button>`).join('');
+  el.innerHTML = `<button class="pvpill" data-action="pvtoggle">👁 Vista de creador ${open?'▾':'▴'}</button>
+    <div class="pvbox"><p>Ves la página como un estudiante. Nada de lo que hagas aquí se guarda en el panel.</p>
+      <label for="pvjump">Ir a la pantalla</label><select id="pvjump" ${S.person?'':'disabled'}>${opts}</select>
+      <label>Tarjetas resaltadas</label><div class="pvcards">${cards}</div>
+      <div class="pvrow"><button data-action="pvreset">Reiniciar</button><a href="admin.html">Volver al panel</a></div></div>`;
+}
+document.addEventListener('change', e => {
+  if (e.target.id !== 'pvjump') return;
+  S.i = +e.target.value; render(); sync();
 });
 
 render();
